@@ -1,0 +1,62 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode — per-user state (window layout, breakpoints, personal schemes)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Build output
+build/
+DerivedData/
+*.xcresult
+*.xcarchive
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved.bak
+Packages/
+
+# CocoaPods / Carthage (not used today, guard against future adds)
+Pods/
+Carthage/Build/
+Carthage/Checkouts/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# Secrets / local config — never commit
+.env
+.env.*
+*.local.xcconfig
+Secrets.xcconfig
+Secrets.swift
+GoogleService-Info.plist
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+
+# Maestro / test artifacts
+.maestro/screenshots/
+shots/
+
+# Editors
+.idea/
+.vscode/
+*.swp
