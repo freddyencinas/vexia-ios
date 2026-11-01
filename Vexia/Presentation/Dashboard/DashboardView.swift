@@ -154,9 +154,9 @@ struct MonthSummaryCard: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(month.label).font(.headline)
                 Spacer()
-                Text("Neto ").font(.footnote).foregroundStyle(VexiaColor.textSecondary)
-                + Text(mask((month.net >= 0 ? "+" : "") + Fmt.money(month.net, currency: month.currency)))
+                let net = Text(mask((month.net >= 0 ? "+" : "") + Fmt.money(month.net, currency: month.currency)))
                     .font(.footnote.weight(.bold)).foregroundStyle(month.net >= 0 ? VexiaColor.incomeText : VexiaColor.expenseText)
+                Text("\(Text("Neto ").font(.footnote).foregroundStyle(VexiaColor.textSecondary))\(net)")
             }
             bar("Ingresos", month.income, maxV, VexiaColor.brandGreen, VexiaColor.greenSoft)
             bar("Gastos", month.expenses, maxV, VexiaColor.expenseFill, VexiaColor.redSoft)

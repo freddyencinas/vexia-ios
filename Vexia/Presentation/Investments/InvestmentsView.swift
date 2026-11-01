@@ -424,8 +424,8 @@ struct InvestmentFormView: View {
                             .textInputAutocapitalization(.characters).autocorrectionDisabled()
                     } else {
                         LabeledContent(vm.isCrypto ? "Cripto" : "Acción") {
-                            Text(vm.draft.symbol.uppercased()).fontWeight(.semibold)
-                            + Text(vm.holding.map { "  · tienes \(Fmt.quantity($0.quantity, crypto: vm.isCrypto))" } ?? "").foregroundStyle(VexiaColor.textSecondary)
+                            let owned = vm.holding.map { "  · tienes \(Fmt.quantity($0.quantity, crypto: vm.isCrypto))" } ?? ""
+                            Text("\(Text(vm.draft.symbol.uppercased()).fontWeight(.semibold))\(Text(owned).foregroundStyle(VexiaColor.textSecondary))")
                         }
                     }
                     if vm.isCrypto {

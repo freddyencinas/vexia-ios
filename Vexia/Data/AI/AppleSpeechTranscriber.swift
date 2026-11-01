@@ -32,7 +32,9 @@ final class AppleSpeechTranscriber: SpeechTranscriber {
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
         input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: format, block: Self.tapBlock(req))
+        // iOS 27 throwing variant: an invalid format now surfaces as an error instead of an ObjC exception.
+        // The SDK only exposes it under its refined `__` name (no Swift overlay yet).
+        try input.__installTap(onBus: 0, bufferSize: 1024, format: format, error: (), block: Self.tapBlock(req))
         engine.prepare()
         try engine.start()
 

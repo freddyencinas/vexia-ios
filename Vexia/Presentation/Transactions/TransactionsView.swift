@@ -36,7 +36,7 @@ struct TransactionsView: View {
                     if vm.month != nil { Button("Ver todo el historial") { vm.showAllTime() }.buttonStyle(.glass) }
                 }
                 .listRowBackground(Color.clear)
-            case .idle, .loading where vm.items.isEmpty:
+            case .idle where vm.items.isEmpty, .loading where vm.items.isEmpty:
                 ForEach(0..<6, id: \.self) { _ in TransactionRow(tx: Self.placeholder).redacted(reason: .placeholder) }
             default:
                 ForEach(vm.sections, id: \.day) { section in
