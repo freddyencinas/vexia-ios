@@ -240,6 +240,7 @@ nonisolated enum Mappers {
             o["operationType"] = .string(d.operationType.rawValue)
             o["accountId"] = .from(d.accountId)
         }
+        if !d.manualRates.isEmpty { o["manualExchangeRates"] = .object(d.manualRates.mapValues(JSON.number)) }
         return .compact(o)
     }
 
@@ -282,6 +283,7 @@ nonisolated enum Mappers {
             o["transactionType"] = .string(d.operationType.rawValue)
             o["accountId"] = .from(d.accountId)
         }
+        if !d.manualRates.isEmpty { o["manualExchangeRates"] = .object(d.manualRates.mapValues(JSON.number)) }
         return .compact(o)
     }
 

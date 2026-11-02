@@ -68,6 +68,11 @@ struct TransactionRow: View {
                 Text(tx.description.isEmpty ? (tx.categoryName ?? tx.type.title) : tx.description)
                     .font(.body.weight(.medium)).lineLimit(1)
                 Text(subtitle).font(.caption).foregroundStyle(VexiaColor.textSecondary).lineLimit(1)
+                // Own line so a long category doesn't truncate the account name
+                if tx.type != .transfer, let account = tx.accountName, !account.isEmpty {
+                    Label(account, systemImage: "building.columns")
+                        .labelStyle(.titleAndIcon).font(.caption2).foregroundStyle(VexiaColor.textSecondary).lineLimit(1)
+                }
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
@@ -95,7 +100,7 @@ struct TransactionRow: View {
 
     private var subtitle: String {
         if tx.type == .transfer { return "\(tx.fromAccountName ?? tx.accountName ?? "") → \(tx.toAccountName ?? "")" }
-        return [tx.categoryName, tx.accountName].compactMap { $0 }.joined(separator: " · ")
+        return tx.categoryName ?? tx.type.title
     }
     private var amountText: String {
         tx.type == .transfer ? Fmt.money(abs(tx.amount), currency: tx.displayCurrency)

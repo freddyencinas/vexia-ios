@@ -29,6 +29,8 @@ struct CategoryIcon: View {
 struct CategoryPickerSheet: View {
     let categories: [FinancialCategory]
     @Binding var selection: String?
+    var title: LocalizedStringKey = "Categoría"
+    var searchPrompt: LocalizedStringKey = "Buscar categoría"
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
 
@@ -45,8 +47,8 @@ struct CategoryPickerSheet: View {
             .overlay {
                 if results.isEmpty { ContentUnavailableView.search(text: query) }
             }
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Buscar categoría")
-            .navigationTitle("Categoría")
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: searchPrompt)
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cerrar", systemImage: "xmark") { dismiss() } } }
         }

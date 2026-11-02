@@ -682,3 +682,105 @@ struct UsageDefaultsTests {
         #expect(ClassifyTransactionUseCase.draft(from: usd, accounts: Fixtures.accounts, usage: stats).accountId == "acc2")
     }
 }
+
+@Suite("Investment sector")
+@MainActor struct InvestmentSectorTests {
+    @Test func sectorIsPickedFromCategoriesAndNamedBySector() async {
+        let catalog = MockCatalog()
+        catalog.categoryList = [
+            FinancialCategory(id: "s1", code: "TRANSPORT", name: "Transporte", icon: nil, type: "sector", isGlobal: true),
+            FinancialCategory(id: "s2", code: "", name: "Mi sector", icon: nil, type: "sector", isGlobal: false),
+        ]
+        let vm = InvestmentFormViewModel(isCrypto: false, stocks: MockStocks(), crypto: MockCrypto(), catalog: catalog)
+        await vm.loadCategories()
+        // Shares the TRANSPORT code with the expense category, but must read as the sector name.
+        #expect(vm.sectors.first { $0.id == "s1" }?.name == SectorNames.byKey["TRANSPORT"])
+        vm.sectorId = "s2"
+        #expect(vm.draft.sector == "s2")
+        #expect(vm.sectorName == "Mi sector")
+        vm.sectorId = nil
+        #expect(vm.draft.sector.isEmpty && vm.sectorName == nil)
+    }
+
+    @Test func nonUSDAccountShowsRateAndSendsManualOverride() async {
+        let catalog = MockCatalog()
+        catalog.stored = ["BOB": 6.96]
+        let vm = InvestmentFormViewModel(isCrypto: false, stocks: MockStocks(), crypto: MockCrypto(), catalog: catalog)
+        await vm.loadAccounts()
+        #expect(vm.accountCode == "USD" && !vm.showsRateCard)  // defaults to the USD account
+
+        vm.draft.accountId = "acc1"
+        await vm.loadRate()
+        vm.quantityText = "2"; vm.priceText = "10"
+        #expect(vm.showsRateCard && vm.usedRate == 6.96)
+        #expect(abs((vm.totalInAccountCurrency ?? 0) - 139.2) < 0.001)
+
+        vm.applyManual("BOB", 10)
+        #expect(vm.isManualRate && vm.totalInAccountCurrency == 200)
+        let body = Mappers.investmentBody(vm.draft, isUpdate: false)
+        #expect(body["manualExchangeRates"]["BOB"].doubleValue == 10)
+        vm.useDayRate()
+        #expect(vm.usedRate == 6.96)
+    }
+
+    @Test func fractionalSharesAllowed() {
+        let vm = InvestmentFormViewModel(isCrypto: false, stocks: MockStocks(), crypto: MockCrypto())
+        vm.quantityText = "0,5"
+        #expect(vm.qty == 0.5)
+        vm.quantityText = "0,12345678"   // shares: backend accepts 6 decimals
+        #expect(vm.quantityText == "0,123456")
+        vm.quantityText = "0,5"; vm.priceText = "10"; vm.draft.symbol = "AAPL"
+        #expect(vm.canSubmit)
+        #expect(vm.ctaTitle.contains(" 0\(AmountMath.separator)5 AAPL"), "\(vm.ctaTitle)")
+    }
+
+    @Test func cryptoKeepsEightDecimalsAndPicksExchangeFromList() async {
+        let catalog = MockCatalog()
+        catalog.categoryList = [FinancialCategory(id: "ex1", code: "BINANCE", name: "Binance", icon: nil, type: "exchange", isGlobal: true)]
+        let vm = InvestmentFormViewModel(isCrypto: true, stocks: MockStocks(), crypto: MockCrypto(), catalog: catalog)
+        #expect(vm.quantityText.isEmpty)    // no "1 BTC" default
+        vm.quantityText = "0,123456789"
+        #expect(vm.quantityText == "0,12345678")
+        await vm.loadCategories()
+        #expect(vm.exchanges.map(\.id) == ["ex1"] && vm.sectors.isEmpty)
+        vm.exchangeId = "ex1"
+        #expect(vm.draft.exchangePlatform == "ex1" && vm.exchangeName == "Binance")
+        vm.draft.exchangePlatform = "Airtm"  // legacy free text still readable
+        #expect(vm.exchangeName == "Airtm")
+    }
+
+    @Test func legacyRawSectorStillReadable() {
+        #expect(SectorNames.label("Technology") == SectorNames.label("TECH"))
+        #expect(SectorNames.label("Algo propio") == "Algo propio")
+    }
+}
+
+@Suite("Amount math")
+struct AmountMathTests {
+    @Test func sanitizeKeepsOneSeparatorAndCutsDecimals() {
+        #expect(AmountMath.sanitize("0,123456789", maxDecimals: 8) == "0,12345678")
+        #expect(AmountMath.sanitize(",5", maxDecimals: 8) == "0,5")
+        #expect(AmountMath.sanitize("1,2,3", maxDecimals: 8) == "1,23")
+        #expect(AmountMath.sanitize("12a3", maxDecimals: 2) == "123")
+    }
+
+    @Test func exactDecimalsAndConversions() {
+        let p = AmountMath.parse
+        #expect(p("0,1")! + p("0,2")! == p("0.3")!)
+        #expect(p("1.234,5") == p("1234.5"))
+        // $50 of BTC at 98.500 → rounded down so the cost never exceeds $50
+        let units = AmountMath.units(fromFiat: 50, price: 98_500, maxDecimals: 8)
+        #expect(units == p("0.00050761"))
+        #expect(AmountMath.fiat(units: units, price: 98_500) <= 50)
+        // "Máx" sells the exact holding, 50 % rounds down
+        let held = AmountMath.decimal(0.12345679)
+        #expect(AmountMath.portion(of: held, percent: 100, maxDecimals: 8) == held)
+        #expect(AmountMath.portion(of: held, percent: 50, maxDecimals: 8) == p("0.06172839"))
+    }
+
+    @Test func editableRoundTrips() {
+        let d = AmountMath.parse("0.00352")!
+        #expect(AmountMath.parse(AmountMath.editable(d, maxDecimals: 8)) == d)
+        #expect(AmountMath.decimal(0.1) == AmountMath.parse("0.1"))
+    }
+}

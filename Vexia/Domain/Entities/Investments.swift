@@ -117,6 +117,8 @@ nonisolated struct InvestmentDraft: Hashable, Sendable {
     var isStablecoin = false
     var date: Date = .now
     var accountId: String?
+    /// Per-operation USD→account currency rate ("Solo esta vez"). Sent as `manualExchangeRates`.
+    var manualRates: [String: Double] = [:]
 
     var total: Double { (quantity * price * 100).rounded() / 100 }
 }

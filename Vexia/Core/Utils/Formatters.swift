@@ -100,4 +100,5 @@ nonisolated enum DateCoding {
 extension String {
     /// "domingo, 1 de noviembre" → "Domingo, 1 de noviembre" (Spanish keeps the rest lowercase).
     var capitalizedFirst: String { prefix(1).uppercased() + dropFirst() }
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

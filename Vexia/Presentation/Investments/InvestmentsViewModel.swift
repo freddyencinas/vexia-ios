@@ -43,7 +43,13 @@ final class InvestmentsViewModel {
     let stocksRepo: InvestmentsRepository
     let cryptoRepo: CryptoRepository
 
-    init(stocks: InvestmentsRepository, crypto: CryptoRepository) { stocksRepo = stocks; cryptoRepo = crypto }
+    private let catalog: CatalogRepository?
+    /// Exchange category id → name (crypto operations store the id).
+    private(set) var exchangeNames: [String: String] = [:]
+
+    init(stocks: InvestmentsRepository, crypto: CryptoRepository, catalog: CatalogRepository? = nil) {
+        stocksRepo = stocks; cryptoRepo = crypto; self.catalog = catalog
+    }
 
     func load() async {
         isLoading = true; defer { isLoading = false; loadedOnce = true }
@@ -62,6 +68,9 @@ final class InvestmentsViewModel {
             async let l = try? cryptoRepo.pnl()
             async let sa = try? cryptoRepo.sales()
             async let o = try? cryptoRepo.transactions(page: 1)
+            if exchangeNames.isEmpty, let cats = try? await catalog?.categories(type: "exchange") {
+                exchangeNames = Dictionary(cats.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
+            }
             cryptoPortfolio = await pf; cryptoPositions = await p ?? []; pnl = await l ?? []
             sales = await sa ?? []; cryptoOps = await o?.items ?? []
         }
@@ -84,10 +93,17 @@ final class InvestmentsViewModel {
     // MARK: Derived
 
     var exchanges: [String] {
-        // /crypto/pnl returns the exchange's category UUID instead of its name — never show IDs as chips.
+        // Values are exchange category ids (or legacy names); unresolved ids are never shown.
         Array(Set((cryptoOps.compactMap { $0.exchangePlatform?.nilIfEmpty } + pnl.compactMap { $0.exchange?.nilIfEmpty })
-            .filter { UUID(uuidString: $0) == nil })).sorted()
+            .filter { exchangeLabel($0) != nil }))
+            .sorted { (exchangeLabel($0) ?? $0).localizedStandardCompare(exchangeLabel($1) ?? $1) == .orderedAscending }
     }
+
+    /// Display name for a stored exchange value; nil for an id we can't resolve.
+    func exchangeLabel(_ raw: String) -> String? {
+        exchangeNames[raw] ?? (UUID(uuidString: raw) == nil ? raw : nil)
+    }
+    func exchangeLabels(_ raws: [String]) -> [String] { raws.compactMap(exchangeLabel) }
 
     var holdings: [HoldingRow] {
         switch segment {
@@ -133,11 +149,41 @@ final class InvestmentsViewModel {
         guard total > 0 else { return [] }
         switch segment {
         case .stocks:
-            let groups = Dictionary(grouping: h, by: { $0.sector?.nilIfEmpty ?? String(localized: "Otros") })
+            let groups = Dictionary(grouping: h, by: { $0.sector?.nilIfEmpty.map(SectorNames.label) ?? String(localized: "Otros") })
             return groups.map { ($0.key, $0.value.reduce(0) { $0 + ($1.value ?? $1.invested) } / total) }.sorted { $0.1 > $1.1 }
         case .crypto:
             let stable = h.filter(\.isStablecoin).reduce(0) { $0 + ($1.value ?? $1.invested) }
             return [(String(localized: "Volátil"), (total - stable) / total), (String(localized: "Stablecoins"), stable / total)].filter { $0.1 > 0 }
+        }
+    }
+
+    var pnlRealizedTotal: Double { filteredPnL.reduce(0) { $0 + $1.realized } }
+    var pnlUnrealizedTotal: Double { filteredPnL.reduce(0) { $0 + $1.unrealized } }
+    /// Floor of 1 keeps bar ratios finite when every asset is flat.
+    var pnlMaxAbsPercent: Double { max(filteredPnL.map { abs($0.pnlPercent) }.max() ?? 1, 1) }
+
+    typealias OperationRow = (id: Int, sym: String, type: OperationType, qty: Double, price: Double, date: Date, fee: Double)
+
+    var operationRows: [OperationRow] {
+        segment == .stocks
+            ? stockOps.map { (id: $0.id, sym: $0.symbol, type: $0.operationType, qty: $0.quantity, price: $0.buyPrice, date: $0.date, fee: $0.fee) }
+            : filteredCryptoOps.map { (id: $0.id, sym: $0.cryptoSymbol, type: $0.transactionType, qty: $0.quantity, price: $0.pricePerUnit, date: $0.date, fee: $0.fee) }
+    }
+
+    enum OperationTarget { case stock(Investment), crypto(CryptoTransaction) }
+
+    func operation(id: Int) -> OperationTarget? {
+        switch segment {
+        case .stocks: stockOps.first { $0.id == id }.map(OperationTarget.stock)
+        case .crypto: cryptoOps.first { $0.id == id }.map(OperationTarget.crypto)
+        }
+    }
+
+    func deleteOperation(id: Int) async {
+        switch operation(id: id) {
+        case .stock(let s): await deleteStock(s)
+        case .crypto(let c): await deleteCrypto(c)
+        case nil: break
         }
     }
 
@@ -154,7 +200,8 @@ final class InvestmentsViewModel {
 @Observable
 final class InvestmentFormViewModel {
     var draft: InvestmentDraft
-    var quantityText = ""
+    /// Fractions allowed up to what the backend accepts (shares 6, crypto 8 decimals).
+    var quantityText = "" { didSet { let t = AmountMath.sanitize(quantityText, maxDecimals: maxDecimals); if t != quantityText { quantityText = t } } }
     var priceText = ""
     var feeText = ""
     let isCrypto: Bool
@@ -190,13 +237,19 @@ final class InvestmentFormViewModel {
         if isCrypto { d.type = "crypto" }
         draft = d
         editingId = editingStock?.id ?? editingCrypto?.id
-        quantityText = d.quantity > 0 ? Fmt.editable(d.quantity, digits: 0...8) : "1"
+        // Crypto starts empty: "1 BTC" is never a sensible default
+        quantityText = d.quantity > 0 ? AmountMath.editable(AmountMath.decimal(d.quantity), maxDecimals: isCrypto ? 8 : 6) : (isCrypto ? "" : "1")
         if d.price > 0 { priceText = Fmt.editable(d.price, digits: 0...8) }
         if d.fee > 0 { feeText = Fmt.editable(d.fee, digits: 0...2) }
     }
 
     var isSell: Bool { draft.operationType == .sell }
-    var qty: Double { num(quantityText) ?? 0 }
+    var maxDecimals: Int { isCrypto ? 8 : 6 }
+    var qty: Double { AmountMath.parse(quantityText).map(AmountMath.double) ?? 0 }
+    /// Unit shown next to the amount ("BTC", "acciones").
+    var unitLabel: String { isCrypto ? (draft.symbol.nilIfEmpty?.uppercased() ?? "") : String(localized: "acciones") }
+    var unitPrice: Double? { price > 0 ? price : nil }
+    var sellAvailable: Double? { isSell ? maxSell : nil }
     var price: Double { num(priceText) ?? 0 }
     var fee: Double { num(feeText) ?? 0 }
     var total: Double { isSell ? qty * price - fee : qty * price + fee }
@@ -212,12 +265,87 @@ final class InvestmentFormViewModel {
         if overMax { return String(localized: "Solo tienes \(Fmt.quantity(maxSell ?? 0, crypto: isCrypto))") }
         let sym = draft.symbol.isEmpty ? "" : " " + draft.symbol.uppercased()
         let verb = editingId != nil ? String(localized: "Guardar") : (isSell ? String(localized: "Vender") : String(localized: "Comprar"))
-        return "\(verb) \(Fmt.grouped(qty, decimals: qty == qty.rounded() ? 0 : 4))\(sym) · \(Fmt.money(total))"
+        let amount = AmountMath.editable(AmountMath.parse(quantityText) ?? 0, maxDecimals: maxDecimals)
+        return "\(verb) \(amount)\(sym) · \(Fmt.money(total))"
     }
 
-    func step(_ delta: Double) {
-        let v = max(isCrypto ? 0 : 1, qty + delta)
-        quantityText = Fmt.editable(v, digits: 0...8)
+    // MARK: Sector (category id of type "sector"; old records may hold the raw name)
+    private(set) var sectors: [FinancialCategory] = []
+    var sectorId: String? {
+        get { draft.sector.nilIfEmpty }
+        set { draft.sector = newValue ?? "" }
+    }
+    var sectorName: String? {
+        guard let raw = draft.sector.nilIfEmpty else { return nil }
+        return sectors.first { $0.id == raw }?.name ?? SectorNames.label(raw)
+    }
+
+    // MARK: Exchange (crypto; category id of type "exchange", old records may hold the raw name)
+    private(set) var exchanges: [FinancialCategory] = []
+    var exchangeId: String? {
+        get { draft.exchangePlatform.nilIfEmpty }
+        set { draft.exchangePlatform = newValue ?? "" }
+    }
+    var exchangeName: String? {
+        guard let raw = draft.exchangePlatform.nilIfEmpty else { return nil }
+        return exchanges.first { $0.id == raw }?.name ?? (UUID(uuidString: raw) == nil ? raw : nil)
+    }
+
+    /// Sectors for stocks, exchanges for crypto.
+    func loadCategories() async {
+        guard let catalog else { return }
+        if isCrypto {
+            guard exchanges.isEmpty else { return }
+            exchanges = ((try? await catalog.categories(type: "exchange")) ?? [])
+                .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+            return
+        }
+        guard sectors.isEmpty else { return }
+        let list = (try? await catalog.categories(type: "sector")) ?? []
+        sectors = list.map { c in
+            var c = c
+            // Global sectors share codes with expense categories (TRANSPORT, UTILITIES): name them by sector
+            if c.isGlobal { c.name = SectorNames.byKey[c.code.uppercased()] ?? SectorNames.label(c.name) }
+            return c
+        }
+        .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    // MARK: Exchange rate (prices are in USD; a non-USD account is debited/credited at this rate)
+    struct RateEditRequest: Identifiable { var id: String { code }; let code: String; let preview: Double? }
+    var rateEditRequest: RateEditRequest?
+    private(set) var quotes: [String: RateQuote] = [:]
+    var catalogRepository: CatalogRepository? { catalog }
+
+    var accountCode: String { accounts.first { $0.id == draft.accountId }?.code.uppercased() ?? "USD" }
+    /// Only on create: the account picker (and so the debited currency) is hidden when editing.
+    var showsRateCard: Bool { editingId == nil && !accounts.isEmpty && accountCode != "USD" }
+    var dayRate: Double? { quotes[accountCode]?.rate }
+    var usedRate: Double? { draft.manualRates[accountCode] ?? dayRate }
+    var isManualRate: Bool { draft.manualRates[accountCode] != nil }
+    var totalInAccountCurrency: Double? {
+        guard showsRateCard, let r = usedRate, r > 0 else { return nil }
+        return total * r
+    }
+    var rateSourceText: String {
+        if isManualRate { return String(localized: "Tu tasa no cambia la de otros movimientos") }
+        return RatesViewModel.sourceText(quotes[accountCode]) + (quotes[accountCode] == nil ? "" : String(localized: " · hoy"))
+    }
+
+    func loadRate() async {
+        guard let catalog, showsRateCard, quotes[accountCode] == nil else { return }
+        quotes.merge(await LoadTransactionRatesUseCase(catalog: catalog)([accountCode])) { _, new in new }
+    }
+    func editRate() { rateEditRequest = RateEditRequest(code: accountCode, preview: totalInAccountCurrency) }
+    func useDayRate() { draft.manualRates[accountCode] = nil }
+    func applyManual(_ code: String, _ v: Double) { draft.manualRates[code] = v }
+    func saveGlobal(_ code: String, _ v: Double) async {
+        guard let catalog else { return }
+        do {
+            try await catalog.saveUSDRate(code: code, rate: v, date: draft.date)
+            quotes[code] = RateQuote(code: code, rate: v, source: .saved)
+            draft.manualRates[code] = nil
+        } catch { errorMessage = error.localizedDescription }
     }
 
     func loadAccounts() async {
@@ -228,6 +356,8 @@ final class InvestmentFormViewModel {
 
     func submit() async -> Bool {
         draft.quantity = qty; draft.price = price; draft.fee = fee
+        // Only the selected account's rate matters; drop overrides left from a previous account choice
+        draft.manualRates = draft.manualRates.filter { $0.key == accountCode }
         if !isSell, draft.currentPrice == nil { draft.currentPrice = price }
         guard !draft.symbol.trimmingCharacters(in: .whitespaces).isEmpty else { errorMessage = ValidationError.missingSymbol.localizedDescription; return false }
         guard draft.quantity > 0, draft.price > 0 else { errorMessage = ValidationError.invalidAmount.localizedDescription; return false }

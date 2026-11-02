@@ -62,6 +62,15 @@ Core          (APIClient, JSON, Keychain, Formatters, Design tokens, AppContaine
 - `Data/DTOs/Mappers.swift`: los fallbacks de keys (camelCase/snake_case, nombres legacy) son intencionales. No “limpiarlos” sin revisar el backend.
 - `APIClient`: refresh de token único en vuelo; keys Keychain `access_token`, `refresh_token`, `user_id`.
 
+## Reglas de vistas (SwiftUI)
+- **Vistas chicas y reutilizables**: un archivo = una vista principal. Si pasa de ~250 líneas o mezcla varias pantallas, partir en subvistas en archivos propios (ej. `TransactionFormView` + `TransactionAmountSection`, `TransactionCategoryGrid`…). Reusar componentes de `Presentation/Common` (`TransactionRow`, `CategoryIcon`, `CategoryPickerSheet`, `DatePickerSheet`, `FlowChips`) antes de crear otros.
+- **Cero lógica de negocio en la vista**: nada de `filter`/`sorted`/`reduce`/búsquedas por id sobre datos de dominio en el `body`. Va como propiedad/método del ViewModel (ej. `vm.topSpendingCategories`, `vm.pnlRealizedTotal`, `vm.deleteOperation(id:)`) o en un UseCase. En la vista solo queda layout y formato.
+- **Un ViewModel por archivo**, separado de la vista (`XxxView.swift` + `XxxViewModel.swift`), `@Observable final class`, guardado en la vista con `@State var vm`. No usar `ObservableObject`/`@StateObject`.
+- **Estado**: estado local de UI (`showSheet`, foco) → `@State private`; subvistas que editan → `@Bindable var vm` o `@Binding`. Si algo "no se actualiza", el dato no está en `@State`/ViewModel `@Observable`.
+- **Subvistas** reciben `@Bindable var vm` (o solo los valores que usan) y closures para abrir hojas; sheets/alerts que coordinan la pantalla quedan en el padre.
+- **Textos**: literales en español tal cual (son claves del String Catalog); al mover código no cambiar el texto o se pierde la traducción.
+- Tras refactors: tests + Periphery (`No unused code detected`).
+
 ## Gotchas
 - **Aislamiento MainActor por defecto**: closures que el sistema ejecuta fuera del main thread deben ser `nonisolated`/`@Sendable`. Ej.: los providers dinámicos de `UIColor` en `Theme.swift` (SwiftUI resuelve colores en su hilo de render → crash `_dispatch_assert_queue_fail` si no). Hay test de regresión.
 - **Colores**: usar tokens `VexiaColor` (adaptativos). `brandBlue` para texto/íconos; `brandFill` para fondos con texto blanco. `Color(hex:)` fijo solo sobre superficies que no cambian con el modo (p. ej. `heroGradient`). Colores del backend con `Color(hexString:)` (se aclaran en oscuro).

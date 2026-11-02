@@ -132,3 +132,29 @@ enum Fixtures {
         Mappers.transaction(["id": .number(Double(id)), "amount": 10, "currency": "USD", "description": "x", "date": "2026-10-01", "type": "expense"])
     }
 }
+
+struct Unused: Error {}
+
+final class MockStocks: InvestmentsRepository, @unchecked Sendable {
+    func positions() async throws -> [StockPosition] { [] }
+    func operations(page: Int) async throws -> Page<Investment> { throw Unused() }
+    func pnl() async throws -> [AssetPnL] { [] }
+    func pnlSummary() async throws -> PnLSummary { throw Unused() }
+    func sales() async throws -> [SaleRecord] { [] }
+    func create(_ draft: InvestmentDraft) async throws {}
+    func update(id: Int, _ draft: InvestmentDraft) async throws {}
+    func delete(id: Int) async throws {}
+    func updatePrices() async throws {}
+}
+
+final class MockCrypto: CryptoRepository, @unchecked Sendable {
+    func portfolio() async throws -> CryptoPortfolio { throw Unused() }
+    func positions() async throws -> [CryptoPosition] { [] }
+    func transactions(page: Int) async throws -> Page<CryptoTransaction> { throw Unused() }
+    func pnl() async throws -> [AssetPnL] { [] }
+    func sales() async throws -> [SaleRecord] { [] }
+    func create(_ draft: InvestmentDraft) async throws {}
+    func update(id: Int, _ draft: InvestmentDraft) async throws {}
+    func delete(id: Int) async throws {}
+    func updatePrices() async throws {}
+}

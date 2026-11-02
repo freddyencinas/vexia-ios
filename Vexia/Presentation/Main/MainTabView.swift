@@ -32,7 +32,7 @@ struct MainTabView: View {
         self.container = container
         _dashboardVM = State(initialValue: DashboardViewModel(loadDashboard: container.loadDashboard, catalog: container.catalog, transactions: container.transactions))
         _transactionsVM = State(initialValue: TransactionsListViewModel(repo: container.transactions, catalog: container.catalog, delete: container.deleteTransaction))
-        _investmentsVM = State(initialValue: InvestmentsViewModel(stocks: container.investments, crypto: container.crypto))
+        _investmentsVM = State(initialValue: InvestmentsViewModel(stocks: container.investments, crypto: container.crypto, catalog: container.catalog))
         _budgetsVM = State(initialValue: BudgetsHubViewModel(repo: container.budgets))
         let settings = container.settings
         _chatVM = State(initialValue: AssistantChatViewModel(agent: container.budgetAgent) { [weak session] in

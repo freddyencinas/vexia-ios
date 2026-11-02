@@ -537,6 +537,16 @@
         }
       }
     },
+    "Bienes raíces": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real estate"
+          }
+        }
+      }
+    },
     "Bloquear con %@": {
       "localizations": {
         "en": {
@@ -597,12 +607,32 @@
         }
       }
     },
+    "Buscar exchange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search exchange"
+          }
+        }
+      }
+    },
     "Buscar por nombre, categoría o monto": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Search by name, category or amount"
+          }
+        }
+      }
+    },
+    "Buscar sector": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search sector"
           }
         }
       }
@@ -923,6 +953,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Checked just now"
+          }
+        }
+      }
+    },
+    "Consumo básico": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consumer staples"
+          }
+        }
+      }
+    },
+    "Consumo discrecional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consumer discretionary"
+          }
+        }
+      }
+    },
+    "Consumo masivo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consumer goods"
           }
         }
       }
@@ -1407,6 +1467,26 @@
         }
       }
     },
+    "Energía": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Energy"
+          }
+        }
+      }
+    },
+    "Entra a tu cuenta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goes into your account"
+          }
+        }
+      }
+    },
     "Entretenimiento": {
       "localizations": {
         "en": {
@@ -1483,6 +1563,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Type a message…"
+          }
+        }
+      }
+    },
+    "Escribir en %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type in %@"
+          }
+        }
+      }
+    },
+    "Escribir en dólares": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type in dollars"
           }
         }
       }
@@ -1567,12 +1667,12 @@
         }
       }
     },
-    "Exchange (Binance, Airtm…)": {
+    "Exchange": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exchange (Binance, Airtm…)"
+            "value": "Exchange"
           }
         }
       }
@@ -1613,6 +1713,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Set my rate"
+          }
+        }
+      }
+    },
+    "Finanzas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finance"
           }
         }
       }
@@ -1947,6 +2057,26 @@
         }
       }
     },
+    "Industria": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Industrials"
+          }
+        }
+      }
+    },
+    "Industrial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Industrial"
+          }
+        }
+      }
+    },
     "Ingresa el símbolo": {
       "localizations": {
         "en": {
@@ -2023,6 +2153,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Home"
+          }
+        }
+      }
+    },
+    "Inmobiliario": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real estate"
           }
         }
       }
@@ -2177,22 +2317,22 @@
         }
       }
     },
+    "Materiales": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Materials"
+          }
+        }
+      }
+    },
     "Mayores gastos": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Top expenses"
-          }
-        }
-      }
-    },
-    "Menos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Less"
           }
         }
       }
@@ -2257,6 +2397,16 @@
         }
       }
     },
+    "Minería y materiales": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mining & materials"
+          }
+        }
+      }
+    },
     "Mis categorías": {
       "localizations": {
         "en": {
@@ -2273,6 +2423,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Amount"
+          }
+        }
+      }
+    },
+    "Monto en dólares": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount in dollars"
           }
         }
       }
@@ -2333,6 +2493,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "More options"
+          }
+        }
+      }
+    },
+    "Máx": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max"
           }
         }
       }
@@ -2593,6 +2763,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hide balances"
+          }
+        }
+      }
+    },
+    "Opcional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional"
           }
         }
       }
@@ -3187,6 +3367,16 @@
         }
       }
     },
+    "Sale de tu cuenta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comes out of your account"
+          }
+        }
+      }
+    },
     "Salud": {
       "localizations": {
         "en": {
@@ -3197,12 +3387,12 @@
         }
       }
     },
-    "Sector (opcional)": {
+    "Sector": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sector (optional)"
+            "value": "Sector"
           }
         }
       }
@@ -3258,6 +3448,26 @@
       }
     },
     "Servicios básicos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilities"
+          }
+        }
+      }
+    },
+    "Servicios de comunicación": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Communication services"
+          }
+        }
+      }
+    },
+    "Servicios públicos": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3373,6 +3583,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No results"
+          }
+        }
+      }
+    },
+    "Sin sector": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sector"
           }
         }
       }
@@ -3677,6 +3897,16 @@
         }
       }
     },
+    "Tecnología": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Technology"
+          }
+        }
+      }
+    },
     "Tema": {
       "localizations": {
         "en": {
@@ -3853,6 +4083,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Transportation"
+          }
+        }
+      }
+    },
+    "Transporte y logística": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transport & logistics"
           }
         }
       }

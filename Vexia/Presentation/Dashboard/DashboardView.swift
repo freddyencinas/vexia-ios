@@ -24,7 +24,7 @@ struct DashboardView: View {
                 }
                 if !vm.recent.isEmpty { recentCard }
                 if let cf = vm.data.cashFlow, !cf.points.isEmpty { CashFlowCard(cashFlow: cf, currency: vm.currency) }
-                if let sp = vm.data.spending, !sp.categories.isEmpty { SpendingCard(spending: sp, currency: vm.currency) }
+                if let sp = vm.data.spending, !sp.categories.isEmpty { SpendingCard(spending: sp, top: vm.topSpendingCategories, currency: vm.currency) }
                 if let p = vm.data.performance, p.combinedValue > 0 { PerformanceCard(perf: p, currency: vm.currency) }
             }
             .padding(.horizontal)
@@ -266,11 +266,10 @@ struct CashFlowCard: View {
 
 struct SpendingCard: View {
     let spending: SpendingAnalysis
+    let top: [SpendingAnalysis.Category]
     let currency: String
     // periphery:ignore - pending: tap a chart slice to highlight its category
     @State private var selected: Double?
-
-    private var top: [SpendingAnalysis.Category] { Array(spending.categories.sorted { $0.amount > $1.amount }.prefix(6)) }
 
     var body: some View {
         SurfaceCard {

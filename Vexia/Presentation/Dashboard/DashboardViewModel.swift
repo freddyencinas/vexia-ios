@@ -117,6 +117,11 @@ final class DashboardViewModel {
         if let s = data.spending, let top = s.categories.max(by: { $0.amount < $1.amount }) { topCategory = (top.categoryName, top.percentage) }
     }
 
+    /// Largest spending categories for the pie chart.
+    var topSpendingCategories: [SpendingAnalysis.Category] {
+        Array((data.spending?.categories ?? []).sorted { $0.amount > $1.amount }.prefix(6))
+    }
+
     func masked(_ s: String) -> String { hideBalances ? "••••••" : s }
 
     // MARK: cache
