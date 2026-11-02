@@ -161,11 +161,11 @@ struct SavedBanner: ViewModifier {
     @Bindable var center: SavedBannerCenter
 
     static func summary(type: TransactionType, isEditing: Bool, isExchange: Bool, amount: String, account: String?) -> String {
-        let what: String = if isEditing { "Cambios guardados" } else {
+        let what: String = if isEditing { String(localized: "Cambios guardados") } else {
             switch type {
-            case .expense: "Gasto guardado"
-            case .income: "Ingreso guardado"
-            case .transfer: isExchange ? "Cambio registrado" : "Transferencia registrada"
+            case .expense: String(localized: "Gasto guardado")
+            case .income: String(localized: "Ingreso guardado")
+            case .transfer: isExchange ? String(localized: "Cambio registrado") : String(localized: "Transferencia registrada")
             }
         }
         return ([what, amount] + [account].compactMap { $0 }).joined(separator: " · ")

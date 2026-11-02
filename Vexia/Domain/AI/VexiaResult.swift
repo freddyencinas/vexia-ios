@@ -62,7 +62,7 @@ nonisolated enum VexiaResultParser {
         let text = sanitize(raw)
         guard let data = text.data(using: .utf8),
               let map = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
-            throw AIError.invalidResponse("JSON no es un objeto")
+            throw AIError.invalidResponse(String(localized: "JSON no es un objeto"))
         }
         let form = map["form_prefill"] as? [String: Any] ?? [:]
         let amount = form["amount"] as? [String: Any] ?? [:]

@@ -10,7 +10,7 @@ enum Fmt {
 
     static func symbol(_ code: String) -> String? { symbols[code.uppercased()] }
 
-    /// Spanish grouping, always (ICU's `es` skips grouping for 4 digits: "1539,00"; design wants "1.539,00").
+    /// Spanish grouping in every app language (regional design: "1.539,00"; ICU's `es` would print "1539,00").
     /// Holding quantity: crypto keeps 4 decimals; shares show whole numbers as-is and fractions
     /// with up to 4 decimals (0,7 → "0,70", 2,3333 → "2,3333") — never rounds 0,70 shares to "1".
     nonisolated static func quantity(_ v: Double, crypto: Bool) -> String {
@@ -36,7 +36,8 @@ enum Fmt {
         let sign = amount < 0 ? "−" : ""
         var body: String
         if compact, abs(amount) >= 10_000 {
-            let (v, unit) = abs(amount) >= 1_000_000 ? (abs(amount) / 1_000_000, " M") : (abs(amount) / 1_000, " mil")
+            let (v, unit) = abs(amount) >= 1_000_000 ? (abs(amount) / 1_000_000, " M")
+                : (abs(amount) / 1_000, " " + String(localized: "mil", comment: "Thousands suffix in compact amounts: 17,2 mil"))
             body = grouped(v, decimals: v < 100 ? 1 : 0).replacingOccurrences(of: ",0", with: "") + unit
         } else {
             body = grouped(amount)
@@ -66,12 +67,12 @@ enum Fmt {
     }
 
     static func shortDate(_ d: Date) -> String { d.formatted(.dateTime.day().month(.abbreviated)) }
-    /// "Octubre" (capitalized month name in Spanish).
+    /// Capitalized month name in the app language ("Octubre" / "October").
     static func monthName(_ d: Date) -> String {
-        d.formatted(.dateTime.month(.wide).locale(Locale(identifier: "es"))).capitalizedFirst
+        d.formatted(.dateTime.month(.wide).locale(.current)).capitalizedFirst
     }
     static func monthYearES(_ d: Date) -> String {
-        d.formatted(.dateTime.month(.wide).year().locale(Locale(identifier: "es"))).capitalizedFirst
+        d.formatted(.dateTime.month(.wide).year().locale(.current)).capitalizedFirst
     }
     static func time(_ d: Date) -> String { d.formatted(date: .omitted, time: .shortened) }
 

@@ -3,7 +3,7 @@ import Foundation
 nonisolated enum OperationType: String, CaseIterable, Identifiable, Sendable {
     case buy, sell, hold
     var id: String { rawValue }
-    var title: String { switch self { case .buy: "Compra"; case .sell: "Venta"; case .hold: "Mantener" } }
+    var title: String { switch self { case .buy: String(localized: "Compra"); case .sell: String(localized: "Venta"); case .hold: String(localized: "Mantener") } }
 }
 
 nonisolated struct Investment: Identifiable, Hashable, Sendable {

@@ -96,7 +96,8 @@ struct MainTabView: View {
         }
         .sheet(item: $capture) { mode in
             VexiaCaptureView(vm: VexiaCaptureViewModel(classify: container.classifyTransaction, catalog: container.catalog,
-                                                      transcriber: container.makeTranscriber(), language: container.settings.language),
+                                                      transcriber: container.makeTranscriber(), language: container.settings.language,
+                                                      usage: container.usage.cached),
                              mode: mode) { draft, notes, heard in
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(400))
@@ -155,7 +156,8 @@ struct MainTabView: View {
     }
 
     private func makeForm(editing: Transaction? = nil, prefill: TransactionDraft? = nil, notes: [String] = []) -> TransactionFormViewModel {
-        let vm = TransactionFormViewModel(save: container.saveTransaction, catalog: container.catalog, editing: editing, prefill: prefill)
+        let vm = TransactionFormViewModel(save: container.saveTransaction, catalog: container.catalog, editing: editing, prefill: prefill,
+                                          usage: container.usage)
         vm.aiNotes = notes
         return vm
     }

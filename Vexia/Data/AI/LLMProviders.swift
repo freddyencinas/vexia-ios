@@ -25,7 +25,7 @@ final class CloudflareLLMProvider: LLMProvider {
     }
 
     private func request(_ body: JSON) async throws -> String {
-        guard let key = apiKey(), !key.isEmpty else { throw AIError.notConfigured("agrega la API key en Ajustes → Inteligencia artificial") }
+        guard let key = apiKey(), !key.isEmpty else { throw AIError.notConfigured(String(localized: "agrega la API key en Ajustes → Inteligencia artificial")) }
         var req = URLRequest(url: URL(string: AppConfig.llmBaseURL + "/chat/direct-question")!, timeoutInterval: 30)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -33,8 +33,8 @@ final class CloudflareLLMProvider: LLMProvider {
         req.httpBody = try JSONSerialization.data(withJSONObject: body.foundation)
         let (data, resp) = try await session.data(for: req)
         let status = (resp as? HTTPURLResponse)?.statusCode ?? 0
-        if status == 429 { throw AIError.unavailable("demasiadas solicitudes, intenta en unos segundos") }
-        if status >= 500 { throw AIError.unavailable("el servicio de IA no responde (\(status))") }
+        if status == 429 { throw AIError.unavailable(String(localized: "demasiadas solicitudes, intenta en unos segundos")) }
+        if status >= 500 { throw AIError.unavailable(String(localized: "el servicio de IA no responde (\(status))")) }
         guard (200..<300).contains(status) else { throw AIError.invalidResponse("HTTP \(status)") }
         return Self.extract(try JSON.parse(data), raw: data)
     }
@@ -68,7 +68,7 @@ final class AppleFoundationModelsProvider: LLMProvider {
 
     func infer(prompt: String, system: String) async throws -> String {
         #if canImport(FoundationModels)
-        guard Self.isAvailable else { throw AIError.unavailable("Apple Intelligence no está disponible en este dispositivo") }
+        guard Self.isAvailable else { throw AIError.unavailable(String(localized: "Apple Intelligence no está disponible en este dispositivo")) }
         let session = LanguageModelSession(instructions: system)
         do { return try await session.respond(to: prompt).content }
         catch {
@@ -76,15 +76,15 @@ final class AppleFoundationModelsProvider: LLMProvider {
             print("[AI] apple-foundation-models failed: \(error)")
             #endif
             // Framework errors surface as the generic "operation couldn't be completed" text.
-            throw AIError.unavailable("el modelo de Apple en el dispositivo no pudo procesar la solicitud")
+            throw AIError.unavailable(String(localized: "el modelo de Apple en el dispositivo no pudo procesar la solicitud"))
         }
         #else
-        throw AIError.unavailable("Foundation Models no disponible")
+        throw AIError.unavailable(String(localized: "Foundation Models no disponible"))
         #endif
     }
 
     func infer(prompt: String, system: String, imageJPEG: Data) async throws -> String {
-        throw AIError.unavailable("el modelo on-device no procesa imágenes")
+        throw AIError.unavailable(String(localized: "el modelo on-device no procesa imágenes"))
     }
 }
 
@@ -116,6 +116,6 @@ final class FallbackLLMProvider: LLMProvider {
     /// A missing API key is fixable by the user; a later fallback's failure would hide it.
     nonisolated static func mostActionable(_ errors: [Error]) -> Error {
         errors.first { if case .notConfigured? = $0 as? AIError { true } else { false } }
-            ?? errors.last ?? AIError.unavailable("sin proveedores")
+            ?? errors.last ?? AIError.unavailable(String(localized: "sin proveedores"))
     }
 }

@@ -66,12 +66,12 @@ struct InvestmentsView: View {
         let h = vm.headline
         let isZero = abs(h.gain) < 0.005
         return VStack(alignment: .leading, spacing: 8) {
-            Text("Valor actual" + (vm.exchange.map { " · \($0)" } ?? "")).font(.footnote).foregroundStyle(Color(hex: 0xD6DEF5))
+            Text(vm.exchange.map { String(localized: "Valor actual · \($0)") } ?? String(localized: "Valor actual")).font(.footnote).foregroundStyle(Color(hex: 0xD6DEF5))
             Text(Fmt.money(h.value)).font(.system(size: 32, weight: .bold, design: .rounded).monospacedDigit())
             HStack {
                 Text("Invertido \(Fmt.money(h.invested, compact: true))").font(.footnote).foregroundStyle(Color(hex: 0xD6DEF5))
                 Spacer()
-                Text(isZero ? "Sin variación · 0%" : "\(h.gain > 0 ? "▲" : "▼") \(Fmt.money(abs(h.gain))) · \(Fmt.grouped(abs(h.percent), decimals: 1))%")
+                Text(isZero ? String(localized: "Sin variación · 0%") : "\(h.gain > 0 ? "▲" : "▼") \(Fmt.money(abs(h.gain))) · \(Fmt.grouped(abs(h.percent), decimals: 1))%")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(isZero ? Color(hex: 0xD6DEF5) : (h.gain > 0 ? Color(hex: 0x9FE6C8) : Color(hex: 0xFFB4AB)))
             }
@@ -120,7 +120,7 @@ struct InvestmentsView: View {
     private var exchangeChips: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
-                chip("Todas", vm.exchange == nil) { vm.exchange = nil }
+                chip(String(localized: "Todas"), vm.exchange == nil) { vm.exchange = nil }
                 ForEach(vm.exchanges, id: \.self) { e in chip(e, vm.exchange == e) { vm.exchange = e } }
             }
         }
@@ -159,7 +159,7 @@ struct InvestmentsView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Vendiste \(Fmt.grouped(s.quantity, decimals: s.quantity == s.quantity.rounded() ? 0 : 4)) \(s.symbol)").font(.subheadline.weight(.semibold))
-                            Text([s.saleDate.map(Fmt.shortDate), "a \(Fmt.money(s.salePrice))", "costo \(Fmt.money(s.costBasis))"].compactMap { $0 }.joined(separator: " · "))
+                            Text([s.saleDate.map(Fmt.shortDate), String(localized: "a \(Fmt.money(s.salePrice))", comment: "Sale price, as in 'at $10'"), String(localized: "costo \(Fmt.money(s.costBasis))", comment: "Cost basis")].compactMap { $0 }.joined(separator: " · "))
                                 .font(.caption).foregroundStyle(VexiaColor.textSecondary)
                         }
                         Spacer()
@@ -178,13 +178,14 @@ struct InvestmentsView: View {
                     if i > 0 { Divider() }
                     Button { openEdit(id: o.id) } label: {
                         HStack(spacing: 12) {
-                            Text(o.type == .sell ? "VENTA" : o.type == .buy ? "COMPRA" : "MANTENER").font(.caption2.weight(.bold))
+                            Text(o.type == .sell ? String(localized: "VENTA") : o.type == .buy ? String(localized: "COMPRA") : String(localized: "MANTENER")).font(.caption2.weight(.bold))
                                 .padding(.horizontal, 8).padding(.vertical, 3)
                                 .background(o.type == .sell ? VexiaColor.redSoft : VexiaColor.greenSoft, in: .rect(cornerRadius: 6))
                                 .foregroundStyle(o.type == .sell ? VexiaColor.expenseText : VexiaColor.incomeText)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(Fmt.grouped(o.qty, decimals: o.qty == o.qty.rounded() ? 0 : 4)) \(o.sym)").font(.subheadline.weight(.semibold))
-                                Text("\(Fmt.shortDate(o.date)) · \(Fmt.money(o.price)) c/u" + (o.fee > 0 ? " · comisión \(Fmt.money(o.fee))" : ""))
+                                Text(o.fee > 0 ? String(localized: "\(Fmt.shortDate(o.date)) · \(Fmt.money(o.price)) c/u · comisión \(Fmt.money(o.fee))")
+                                                       : String(localized: "\(Fmt.shortDate(o.date)) · \(Fmt.money(o.price)) c/u"))
                                     .font(.caption).foregroundStyle(VexiaColor.textSecondary)
                             }
                             Spacer()
@@ -234,7 +235,7 @@ struct InvestmentsView: View {
         }
     }
 
-    private func statTile(_ title: String, _ v: Double) -> some View {
+    private func statTile(_ title: LocalizedStringKey, _ v: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.caption).foregroundStyle(VexiaColor.textSecondary)
             Text((v > 0 ? "+" : "") + Fmt.money(v)).font(.headline.monospacedDigit())
@@ -285,7 +286,8 @@ struct InvestmentsView: View {
             Image(systemName: "chart.line.uptrend.xyaxis").font(.title).foregroundStyle(VexiaColor.brandBlue)
                 .frame(width: 64, height: 64).background(VexiaColor.tintSoft, in: .rect(cornerRadius: 20))
             Text("Empieza tu portafolio").font(.title3.weight(.bold))
-            Text("Registra tu primera compra de \(vm.segment == .stocks ? "acciones" : "cripto") y Vexia calculará tu ganancia, el precio promedio y las ventas.")
+            Text(vm.segment == .stocks ? String(localized: "Registra tu primera compra de acciones y Vexia calculará tu ganancia, el precio promedio y las ventas.")
+                     : String(localized: "Registra tu primera compra de cripto y Vexia calculará tu ganancia, el precio promedio y las ventas."))
                 .font(.subheadline).foregroundStyle(VexiaColor.textSecondary).multilineTextAlignment(.center)
             Button("Registrar primera compra") { formRequest = FormRequest() }
                 .buttonStyle(.glassProminent).controlSize(.large)
@@ -301,7 +303,7 @@ struct InvestmentsView: View {
             .background(.background, in: .rect(cornerRadius: 20))
     }
 
-    private func emptyRow(_ t: String) -> some View {
+    private func emptyRow(_ t: LocalizedStringKey) -> some View {
         Text(t).font(.subheadline).foregroundStyle(VexiaColor.textSecondary).frame(maxWidth: .infinity).padding(.vertical, 18)
     }
 
@@ -335,7 +337,7 @@ struct PositionDetailView: View {
                         .frame(width: 48, height: 48).background(VexiaColor.tintSoft, in: .rect(cornerRadius: 14))
                     VStack(alignment: .leading, spacing: 2) {
                         Text(holding.symbol).font(.title2.weight(.bold))
-                        Text([holding.sector, holding.exchanges.first].compactMap { $0?.nilIfEmpty }.joined(separator: " · ").nilIfEmpty ?? (vm.segment == .stocks ? "Acción" : "Cripto"))
+                        Text([holding.sector, holding.exchanges.first].compactMap { $0?.nilIfEmpty }.joined(separator: " · ").nilIfEmpty ?? (vm.segment == .stocks ? String(localized: "Acción") : String(localized: "Cripto")))
                             .font(.footnote).foregroundStyle(VexiaColor.textSecondary)
                     }
                 }
@@ -346,9 +348,9 @@ struct PositionDetailView: View {
                     }
                 }
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    stat("Tienes", "\(Fmt.quantity(holding.quantity, crypto: vm.segment == .crypto)) \(vm.segment == .crypto ? holding.symbol : (holding.quantity == 1 ? "acción" : "acciones"))")
+                    stat("Tienes", "\(Fmt.quantity(holding.quantity, crypto: vm.segment == .crypto)) \(vm.segment == .crypto ? holding.symbol : (holding.quantity == 1 ? String(localized: "acción") : String(localized: "acciones")))")
                     stat("Precio promedio", Fmt.money(holding.avgPrice))
-                    stat("Valor hoy", holding.value.map { Fmt.money($0) } ?? "Sin precio")
+                    stat("Valor hoy", holding.value.map { Fmt.money($0) } ?? String(localized: "Sin precio"))
                     stat("Ganancia", holding.gain.map { g in
                         (g >= 0 ? "+" : "−") + Fmt.money(abs(g)) + (holding.gainPercent.map { " · \(Fmt.grouped(abs($0), decimals: 1))%" } ?? "")
                     } ?? "—", color: (holding.gain ?? 0) > 0.005 ? VexiaColor.incomeText : (holding.gain ?? 0) < -0.005 ? VexiaColor.expenseText : .primary)
@@ -390,7 +392,7 @@ struct PositionDetailView: View {
         }
     }
 
-    private func stat(_ k: String, _ v: String, color: Color = .primary) -> some View {
+    private func stat(_ k: LocalizedStringKey, _ v: String, color: Color = .primary) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(k).font(.caption).foregroundStyle(VexiaColor.textSecondary)
             Text(v).font(.headline.monospacedDigit()).foregroundStyle(color).lineLimit(1).minimumScaleFactor(0.7)
@@ -420,11 +422,11 @@ struct InvestmentFormView: View {
                 }
                 Section {
                     if vm.holding == nil && vm.editingId == nil {
-                        TextField(vm.isCrypto ? "Símbolo (BTC, ETH…)" : "Símbolo (AAPL, MSFT…)", text: $vm.draft.symbol).focused($typing)
+                        TextField(vm.isCrypto ? String(localized: "Símbolo (BTC, ETH…)") : String(localized: "Símbolo (AAPL, MSFT…)"), text: $vm.draft.symbol).focused($typing)
                             .textInputAutocapitalization(.characters).autocorrectionDisabled()
                     } else {
-                        LabeledContent(vm.isCrypto ? "Cripto" : "Acción") {
-                            let owned = vm.holding.map { "  · tienes \(Fmt.quantity($0.quantity, crypto: vm.isCrypto))" } ?? ""
+                        LabeledContent(vm.isCrypto ? String(localized: "Cripto") : String(localized: "Acción")) {
+                            let owned = vm.holding.map { String(localized: "  · tienes \(Fmt.quantity($0.quantity, crypto: vm.isCrypto))") } ?? ""
                             Text("\(Text(vm.draft.symbol.uppercased()).fontWeight(.semibold))\(Text(owned).foregroundStyle(VexiaColor.textSecondary))")
                         }
                     }
@@ -449,21 +451,21 @@ struct InvestmentFormView: View {
                     if vm.overMax, let m = vm.maxSell {
                         Text("Solo tienes \(Fmt.quantity(m, crypto: vm.isCrypto)) para vender.").font(.footnote.weight(.semibold)).foregroundStyle(VexiaColor.expenseText)
                     }
-                    LabeledContent(vm.isSell ? "Precio de venta" : "Precio por unidad") {
+                    LabeledContent(vm.isSell ? String(localized: "Precio de venta") : String(localized: "Precio por unidad")) {
                         TextField("0,00", text: $vm.priceText).focused($typing).keyboardType(.decimalPad).multilineTextAlignment(.trailing).monospacedDigit()
                     }
                     LabeledContent("Comisión") {
                         TextField("0,00", text: $vm.feeText).focused($typing).keyboardType(.decimalPad).multilineTextAlignment(.trailing).monospacedDigit()
                     }
                     if !vm.accounts.isEmpty && vm.editingId == nil {
-                        Picker(vm.isSell ? "Recibir en" : "Pagar con", selection: $vm.draft.accountId) {
+                        Picker(vm.isSell ? String(localized: "Recibir en") : String(localized: "Pagar con"), selection: $vm.draft.accountId) {
                             ForEach(vm.accounts) { Text("\($0.name) · \(Fmt.money($0.balance, currency: $0.code))").tag(Optional($0.id)) }
                         }
                     }
                     DatePicker("Fecha", selection: $vm.draft.date, displayedComponents: .date)
                 }
                 Section {
-                    LabeledContent(vm.isSell ? "Recibirás" : "Pagarás") { Text(Fmt.money(vm.total)).fontWeight(.bold).monospacedDigit() }
+                    LabeledContent(vm.isSell ? String(localized: "Recibirás") : String(localized: "Pagarás")) { Text(Fmt.money(vm.total)).fontWeight(.bold).monospacedDigit() }
                     if let p = vm.estimatedProfit {
                         LabeledContent("Ganancia estimada") {
                             Text((p >= 0 ? "+" : "−") + Fmt.money(abs(p))).fontWeight(.bold)
@@ -476,7 +478,7 @@ struct InvestmentFormView: View {
                 }
                 Section { TextField("Notas (opcional)", text: $vm.draft.notes, axis: .vertical).focused($typing) }
             }
-            .navigationTitle(vm.editingId != nil ? "Editar operación" : (vm.isSell ? "Vender" : "Comprar"))
+            .navigationTitle(vm.editingId != nil ? String(localized: "Editar operación") : (vm.isSell ? String(localized: "Vender") : String(localized: "Comprar")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { dismiss() } } }
             .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Listo") { typing = false } } }

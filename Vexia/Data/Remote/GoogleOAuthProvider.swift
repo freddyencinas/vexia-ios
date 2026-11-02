@@ -11,9 +11,9 @@ final class GoogleOAuthProvider: NSObject, GoogleIdentityProvider {
         case invalidCallback, stateMismatch, missingIDToken, google(String)
         var errorDescription: String? {
             switch self {
-            case .invalidCallback, .stateMismatch: "No pudimos completar el inicio de sesión con Google. Intenta de nuevo."
-            case .missingIDToken: "Google no devolvió tu identidad. Intenta de nuevo."
-            case .google(let m): "Google rechazó el inicio de sesión (\(m))."
+            case .invalidCallback, .stateMismatch: String(localized: "No pudimos completar el inicio de sesión con Google. Intenta de nuevo.")
+            case .missingIDToken: String(localized: "Google no devolvió tu identidad. Intenta de nuevo.")
+            case .google(let m): String(localized: "Google rechazó el inicio de sesión (\(m)).")
             }
         }
     }

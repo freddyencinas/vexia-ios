@@ -47,10 +47,10 @@ final class DashboardViewModel {
 
     var insight: Insight? {
         guard let m = month, m.income > 0 else { return nil }
-        var body = "Ingresaste \(Fmt.money(m.income, currency: m.currency)) y gastaste \(Fmt.money(m.expenses, currency: m.currency))."
-        if let top = topCategory { body = "\(top.name) fue el \(Fmt.percent(top.share)) de tus gastos. ¿Armamos un presupuesto?" }
+        var body = String(localized: "Ingresaste \(Fmt.money(m.income, currency: m.currency)) y gastaste \(Fmt.money(m.expenses, currency: m.currency)).")
+        if let top = topCategory { body = String(localized: "\(top.name) fue el \(Fmt.percent(top.share)) de tus gastos. ¿Armamos un presupuesto?") }
         let rate = m.savingsRate
-        let title = rate >= 0 ? "\(m.label) va con \(Fmt.percent(rate)) de ahorro" : "\(m.label): gastaste más de lo que ingresaste"
+        let title = rate >= 0 ? String(localized: "\(m.label) va con \(Fmt.percent(rate)) de ahorro") : String(localized: "\(m.label): gastaste más de lo que ingresaste")
         return Insight(title: title, body: body)
     }
 
@@ -110,7 +110,7 @@ final class DashboardViewModel {
             var (m, list) = totals(for: .now)
             if m.income + m.expenses == 0, let prev = cal.date(byAdding: .month, value: -1, to: .now) { (m, list) = totals(for: prev) }
             month = m.income + m.expenses > 0 ? m : nil
-            let byCat = Dictionary(grouping: list.filter { $0.type == .expense }, by: { $0.categoryName ?? "Otros" })
+            let byCat = Dictionary(grouping: list.filter { $0.type == .expense }, by: { $0.categoryName ?? String(localized: "Otros") })
                 .mapValues { $0.reduce(0) { $0 + abs($1.amount) } }
             if let top = byCat.max(by: { $0.value < $1.value }), m.expenses > 0 { topCategory = (top.key, top.value / m.expenses * 100) }
         }

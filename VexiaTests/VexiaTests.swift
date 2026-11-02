@@ -97,6 +97,28 @@ struct UseCaseTests {
         #expect(ClassifyTransactionUseCase.draft(from: bob, accounts: Fixtures.accounts).accountId == "acc1")
     }
 
+    @Test func accountResolvedFromParaphraseOrTranscript() throws {
+        let accounts = [
+            Account(id: "w", name: "Admirals Wallet", type: .investment, currencyId: "cur-usd", currencyCode: "USD", initialBalance: 0, isFavorite: true),
+            Account(id: "g", name: "Banco Ganadero", type: .bank, currencyId: "cur-bob", currencyCode: "BOB", initialBalance: 0, isFavorite: false),
+            Account(id: "b", name: "BCP Bolivianos", type: .bank, currencyId: "cur-bob", currencyCode: "BOB", initialBalance: 0, isFavorite: false),
+        ]
+        func run(_ json: String, said: String) throws -> TransactionDraft {
+            let r = ClassifyTransactionUseCase.postProcess(try VexiaResultParser.parse(json), accounts: accounts, categories: [], transcript: said)
+            return ClassifyTransactionUseCase.draft(from: r, accounts: accounts)
+        }
+        let said = "Gasté 150 Bs. en salteña con banco BCP"
+        // LLM paraphrased the name.
+        #expect(try run(#"{"intent":"expense","form_prefill":{"amount":{"value":150},"account_from_id":"Banco BCP"}}"#, said: said).accountId == "b")
+        // LLM omitted account and currency: transcript decides, not the USD favorite.
+        let d = try run(#"{"intent":"expense","form_prefill":{"amount":{"value":150}}}"#, said: said)
+        #expect(d.accountId == "b")
+        #expect(d.currencyCode == "BOB")
+        // Only the currency was said → a Bs account, never the USD favorite.
+        #expect(try run(#"{"intent":"expense","form_prefill":{"amount":{"value":50}}}"#, said: "gasté 50 bolivianos en almuerzo").currencyCode == "BOB")
+        #expect(try run(#"{"intent":"expense","form_prefill":{"amount":{"value":20}}}"#, said: "pagué con banco ganadero").accountId == "g")
+    }
+
     @Test func classifyRejectsEmptyInput() async {
         let uc = ClassifyTransactionUseCase(llm: MockLLM(), prompts: MockPrompts())
         await #expect(throws: AIError.emptyTranscript) {
@@ -166,6 +188,16 @@ struct UseCaseTests {
         #expect(CategorySearch.filter(cats, query: "coffee").map(\.id) == ["1"]) // matches code too
         #expect(CategorySearch.filter(cats, query: "").count == 3)
         #expect(CategorySearch.filter(cats, query: "xyz").isEmpty)
+    }
+
+    @Test func debouncedSearchLoadsInsteadOfFailing() async throws {
+        let repo = MockTransactionsRepo()
+        let vm = TransactionsListViewModel(repo: repo, catalog: MockCatalog(), delete: DeleteTransactionUseCase(repo: repo))
+        vm.filter.search = "Saku"; vm.scheduleReload()
+        vm.filter.search = "Sakura"; vm.scheduleReload()  // typing restarts the debounce
+        try await Task.sleep(for: .milliseconds(900))
+        #expect(repo.searches == ["Sakura"])
+        guard case .loaded = vm.state else { Issue.record("search did not load"); return }
     }
 
     @Test func fallbackProviderTriesNext() async throws {
@@ -547,5 +579,106 @@ struct QuantityFormatTests {
         #expect(Fmt.quantity(5, crypto: false) == "5")
         #expect(Fmt.quantity(2.3333, crypto: false) == "2,3333")
         #expect(Fmt.quantity(0.0228, crypto: true) == "0,0228")
+    }
+}
+
+@Suite("Localization")
+struct LocalizationTests {
+    /// New strings added by Xcode land in the catalog without English → fail until translated.
+    @Test func catalogIsFullyTranslatedToEnglish() throws {
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .appendingPathComponent("../Vexia/Resources/Localizable.xcstrings").standardized
+        let catalog = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
+        let strings = catalog["strings"] as! [String: [String: Any]]
+        let untranslated = strings.filter { _, entry in
+            guard entry["shouldTranslate"] as? Bool != false else { return false }
+            let en = (entry["localizations"] as? [String: Any])?["en"] as? [String: Any]
+            let unit = en?["stringUnit"] as? [String: Any]
+            return (unit?["value"] as? String)?.isEmpty ?? true
+        }.keys.sorted()
+        #expect(strings.count > 400)
+        #expect(untranslated.isEmpty, "Missing English: \(untranslated)")
+    }
+
+    @Test func appBundleResolvesEnglish() throws {
+        let path = try #require(Bundle(for: SettingsViewModel.self).path(forResource: "en", ofType: "lproj"))
+        let en = try #require(Bundle(path: path))
+        #expect(en.localizedString(forKey: "Gasto", value: nil, table: nil) == "Expense")
+        #expect(en.localizedString(forKey: "Buscar categoría", value: nil, table: nil) == "Search category")
+    }
+}
+
+@Suite("Usage defaults")
+struct UsageDefaultsTests {
+    static let cats = [
+        FinancialCategory(id: "c-food", code: "FOOD", name: "Comida", type: "expense", isGlobal: true),
+        FinancialCategory(id: "c-snack", code: "SNACK", name: "Snack", type: "expense", isGlobal: false),
+        FinancialCategory(id: "c-fuel", code: "FUEL", name: "Combustible", type: "expense", isGlobal: false),
+        FinancialCategory(id: "c-sal", code: "SALARY", name: "Salario", type: "income", isGlobal: true),
+    ]
+    static let history = [  // newest first, like the API
+        Fixtures.tx(id: 5, type: "expense", category: "c-fuel", account: "acc1", date: "2026-10-30"),
+        Fixtures.tx(id: 4, type: "expense", category: "c-snack", account: "acc2", date: "2026-10-29"),
+        Fixtures.tx(id: 3, type: "expense", category: "c-snack", account: "acc2", date: "2026-10-20"),
+        Fixtures.tx(id: 2, type: "income", category: "c-sal", account: "acc2", date: "2026-10-15"),
+        Fixtures.tx(id: 1, type: "transfer", account: "acc2", to: "acc1", date: "2026-10-10"),
+    ]
+
+    @Test func statsRankByCountThenRecency() {
+        let s = UsageStats.compute(from: Self.history)
+        #expect(s.rankedCategoryIds(for: .expense) == ["c-snack", "c-fuel"])
+        #expect(s.lastAccountId(for: .expense) == "acc1")   // fuel on the 30th is the latest expense
+        #expect(s.lastAccountId(for: .income) == "acc2")
+        #expect(s.lastAccountId(for: .transfer) == "acc2")
+        #expect(s.lastTransferDestinationId == "acc1")
+    }
+
+    @MainActor
+    private func form(prefill: TransactionDraft? = nil) async -> (TransactionFormViewModel, MockTransactionsRepo, MemoryUsageStore) {
+        let repo = MockTransactionsRepo(); repo.items = Self.history
+        let store = MemoryUsageStore()
+        let usage = UsageStatsUseCase(repo: repo, store: store)
+        let catalog = MockCatalog(); catalog.categoryList = Self.cats
+        let vm = TransactionFormViewModel(save: SaveTransactionUseCase(repo: repo, usage: usage), catalog: catalog, prefill: prefill, usage: usage)
+        await vm.loadCatalog()
+        return (vm, repo, store)
+    }
+
+    @Test func formShowsMostUsedCategoriesAndLastAccount() async {
+        let (vm, _, _) = await form()
+        #expect(vm.filteredCategories.map(\.id) == ["c-snack", "c-fuel", "c-food"])
+        #expect(vm.draft.accountId == "acc1")
+        vm.draft.type = .income; vm.typeChanged()
+        #expect(vm.draft.accountId == "acc2")
+        vm.draft.type = .transfer; vm.typeChanged()
+        #expect(vm.draft.accountId == "acc2")
+        #expect(vm.draft.toAccountId == "acc1")
+    }
+
+    @Test func userChoiceAndPrefillAreNeverOverridden() async {
+        var pre = TransactionDraft(); pre.accountId = "acc2"
+        let (vm, _, _) = await form(prefill: pre)
+        #expect(vm.draft.accountId == "acc2")  // Vexia/prefill wins over last used (acc1)
+        let (vm2, _, _) = await form()
+        vm2.draft.accountId = "acc2"           // user picked
+        vm2.draft.type = .income; vm2.typeChanged()
+        #expect(vm2.draft.accountId == "acc2")
+    }
+
+    @Test func savingBumpsUsageImmediately() async throws {
+        let (vm, _, store) = await form()
+        vm.draft.categoryId = "c-food"; vm.amountText = "5"
+        for _ in 0..<2 { vm.draft.categoryId = "c-food"; #expect(await vm.submit()) }
+        // Snack has 2 uses in history; 2 new food saves tie it and are more recent → food first.
+        #expect(store.stats?.rankedCategoryIds(for: .expense).first == "c-food")
+    }
+
+    @Test func dictationFallsBackToLastUsedAccount() throws {
+        let stats = UsageStats.compute(from: Self.history)
+        let r = try VexiaResultParser.parse(#"{"intent":"expense","form_prefill":{"amount":{"value":20}}}"#)
+        #expect(ClassifyTransactionUseCase.draft(from: r, accounts: Fixtures.accounts, usage: stats).accountId == "acc1")
+        // Spoken currency still wins: USD → acc2 even though acc1 was last used.
+        let usd = try VexiaResultParser.parse(#"{"intent":"expense","form_prefill":{"amount":{"value":20,"currency":"USD"}}}"#)
+        #expect(ClassifyTransactionUseCase.draft(from: usd, accounts: Fixtures.accounts, usage: stats).accountId == "acc2")
     }
 }

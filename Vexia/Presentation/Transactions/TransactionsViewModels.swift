@@ -13,6 +13,7 @@ final class TransactionsListViewModel {
     private(set) var categories: [FinancialCategory] = []
     private var pagination = Pagination()
     private var loadTask: Task<Void, Never>?
+    private var generation = 0
     var errorMessage: String?
     var pendingDelete: Transaction?
     var deleteWarning: String?
@@ -27,7 +28,7 @@ final class TransactionsListViewModel {
     }
 
     var sections: [(day: Date, items: [Transaction])] { TransactionGrouping.byDay(items) }
-    var monthTitle: String { month.map(Fmt.monthYearES) ?? "Todo el historial" }
+    var monthTitle: String { month.map(Fmt.monthYearES) ?? String(localized: "Todo el historial") }
     var canGoForward: Bool { month.map { $0 < Calendar.current.dateInterval(of: .month, for: .now)!.start } ?? false }
     var baseCurrency: String { summary?.currencyCode ?? items.first?.displayCurrency ?? "USD" }
 
@@ -69,29 +70,44 @@ final class TransactionsListViewModel {
         categories = await c ?? []
     }
 
+    /// Filter/refresh entry point: drops a pending debounced search, then loads.
     func reload() async {
-        loadTask?.cancel()
+        loadTask?.cancel(); loadTask = nil
+        await performReload()
+    }
+
+    private func performReload() async {
+        generation += 1
+        let mine = generation
         state = .loading
         do {
             async let page = repo.list(filter: effectiveFilter, page: 1, limit: pageSize)
             async let sum = try? repo.summary(filter: effectiveFilter)
             let p = try await page
+            let s = await sum
+            guard mine == generation else { return }  // a newer query superseded this one
             items = p.items; pagination = p.pagination
-            summary = await sum
+            summary = s
             state = .loaded(())
-        } catch is CancellationError {
         } catch {
+            guard mine == generation, !Self.isCancellation(error) else { return }
             state = .failed(error.localizedDescription)
         }
     }
 
+    /// Typing restarts the timer; the task must not call `reload()` (it would cancel itself
+    /// mid-request → URLError.cancelled shown as "No pudimos cargar tus movimientos").
     func scheduleReload() {
         loadTask?.cancel()
         loadTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled else { return }
-            await self?.reload()
+            await self?.performReload()
         }
+    }
+
+    nonisolated static func isCancellation(_ error: Error) -> Bool {
+        error is CancellationError || (error as? APIError)?.code == .cancelled || (error as? URLError)?.code == .cancelled
     }
 
     func loadMoreIfNeeded(current: Transaction) async {
@@ -106,7 +122,7 @@ final class TransactionsListViewModel {
 
     func requestDelete(_ tx: Transaction) async {
         switch await deleteUseCase.check(id: tx.id) {
-        case .blocked(let msg): errorMessage = msg.isEmpty ? "No se puede eliminar esta transacción" : msg
+        case .blocked(let msg): errorMessage = msg.isEmpty ? String(localized: "No se puede eliminar esta transacción") : msg
         case .warn(let msg): deleteWarning = msg; pendingDelete = tx
         case .safe: deleteWarning = nil; pendingDelete = tx
         }
@@ -153,9 +169,16 @@ final class TransactionFormViewModel {
     private let save: SaveTransactionUseCase
     private let catalog: CatalogRepository
     private let loadRates: LoadTransactionRatesUseCase
+    private let usage: UsageStatsUseCase?
+    private var stats: UsageStats
+    /// Accounts we preselected (not the user): only these get replaced when type or stats change.
+    private var autoAccountId: String?
+    private var autoToAccountId: String?
 
-    init(save: SaveTransactionUseCase, catalog: CatalogRepository, editing: Transaction? = nil, prefill: TransactionDraft? = nil) {
-        self.save = save; self.catalog = catalog
+    init(save: SaveTransactionUseCase, catalog: CatalogRepository, editing: Transaction? = nil, prefill: TransactionDraft? = nil,
+         usage: UsageStatsUseCase? = nil) {
+        self.save = save; self.catalog = catalog; self.usage = usage
+        stats = usage?.cached ?? UsageStats()
         loadRates = LoadTransactionRatesUseCase(catalog: catalog)
         editingId = editing?.id
         originalSnapshots = editing?.currencySnapshots ?? []
@@ -177,11 +200,15 @@ final class TransactionFormViewModel {
 
     var isEditing: Bool { editingId != nil }
     var catalogRepository: CatalogRepository { catalog }
-    /// Everyday categories first (design: grid of the most used), then the rest alphabetically.
+    /// Fallback order for users without history: everyday categories first, then the rest alphabetically.
     static let categoryPriority = ["FOOD", "MARKET", "TRANSPORT", "HOUSING", "UTILITIES", "HEALTHCARE", "ENTERTAINMENT", "SHOPPING",
                                    "EDUCATION", "TAXES", "SALARY", "FREELANCE", "BUSINESS", "REMITTANCE", "BONUS", "RENTAL", "INVESTMENT", "OTHER"]
+    /// The user's most used categories first, then the fallback order.
     var filteredCategories: [FinancialCategory] {
-        categories.filter { $0.type == draft.type.rawValue }.sorted { a, b in
+        let used = stats.rankedCategoryIds(for: draft.type)
+        return categories.filter { $0.type == draft.type.rawValue }.sorted { a, b in
+            let ua = used.firstIndex(of: a.id) ?? Int.max, ub = used.firstIndex(of: b.id) ?? Int.max
+            if ua != ub { return ua < ub }
             let ia = Self.categoryPriority.firstIndex(of: a.code.uppercased()) ?? Int.max
             let ib = Self.categoryPriority.firstIndex(of: b.code.uppercased()) ?? Int.max
             return ia == ib ? a.name < b.name : ia < ib
@@ -199,10 +226,29 @@ final class TransactionFormViewModel {
         async let c = try? catalog.categories(type: nil)
         accounts = (await a ?? []).sorted { $0.isFavorite && !$1.isFavorite }
         categories = await c ?? []
-        if draft.accountId == nil { draft.accountId = accounts.first?.id }
+        applyAccountDefaults()  // cached stats → instant defaults
         syncCurrency()
         isLoadingCatalog = false
         await loadRatesStrip()
+        if let usage, !isEditing {
+            stats = await usage.refresh()
+            applyAccountDefaults()
+        }
+    }
+
+    /// Last account used for this type (transfers: origin and destination), else the favorite/first.
+    /// Never overrides an account the user picked or one that came prefilled (e.g. from Vexia).
+    func applyAccountDefaults() {
+        guard !isEditing, !accounts.isEmpty else { return }
+        func existing(_ id: String?) -> String? { id.flatMap { id in accounts.first { $0.id == id }?.id } }
+        if draft.accountId == nil || draft.accountId == autoAccountId {
+            let id = existing(stats.lastAccountId(for: draft.type)) ?? accounts.first?.id
+            draft.accountId = id; autoAccountId = id
+        }
+        if draft.type == .transfer, draft.toAccountId == nil || draft.toAccountId == autoToAccountId,
+           let to = existing(stats.lastTransferDestinationId), to != draft.accountId {
+            draft.toAccountId = to; autoToAccountId = to
+        }
     }
 
     func syncCurrency() {
@@ -212,6 +258,7 @@ final class TransactionFormViewModel {
     }
 
     func typeChanged() {
+        applyAccountDefaults()
         if let c = draft.categoryId, !filteredCategories.contains(where: { $0.id == c }) { draft.categoryId = nil }
     }
 
@@ -243,7 +290,7 @@ final class TransactionFormViewModel {
         quotes.merge(fresh) { _, new in new }
         draft.manualRates.removeAll()
         recomputeFX()
-        infoMessage = fresh.isEmpty ? "No se pudieron actualizar las tasas" : "Tasas actualizadas (\(fresh.count))"
+        infoMessage = fresh.isEmpty ? String(localized: "No se pudieron actualizar las tasas") : String(localized: "Tasas actualizadas (\(fresh.count))")
     }
 
     // periphery:ignore - pending: long-press on a rate chip to refresh it
@@ -262,7 +309,7 @@ final class TransactionFormViewModel {
 
     /// "Solo esta vez": only affects this transaction (sent in manualExchangeRates / customExchangeRate).
     func applyRateOnce() {
-        guard let code = editingRateCode, let v = parse(rateEditText), v > 0 else { errorMessage = "Ingresa una tasa válida"; return }
+        guard let code = editingRateCode, let v = parse(rateEditText), v > 0 else { errorMessage = String(localized: "Ingresa una tasa válida"); return }
         draft.manualRates[code] = v
         editingRateCode = nil
         recomputeFX()
@@ -270,14 +317,14 @@ final class TransactionFormViewModel {
 
     /// "Guardar": persists globally (POST /exchange-rates) and clears the manual override.
     func saveRateGlobally() async {
-        guard let code = editingRateCode, let v = parse(rateEditText), v > 0 else { errorMessage = "Ingresa una tasa válida"; return }
+        guard let code = editingRateCode, let v = parse(rateEditText), v > 0 else { errorMessage = String(localized: "Ingresa una tasa válida"); return }
         editingRateCode = nil
         do {
             try await catalog.saveUSDRate(code: code, rate: v, date: draft.date)
             quotes[code] = RateQuote(code: code, rate: v, source: .saved)
             draft.manualRates[code] = nil
             recomputeFX()
-            infoMessage = "Tasa \(code) guardada: \(Fmt.number(v, digits: 2...4))"
+            infoMessage = String(localized: "Tasa \(code) guardada: \(Fmt.number(v, digits: 2...4))")
         } catch { errorMessage = error.localizedDescription }
     }
 
@@ -295,8 +342,8 @@ final class TransactionFormViewModel {
     var usedRate: Double? { rate(for: accountCode) }
     var equivalentUSD: Double? { guard accountCode != "USD", let r = usedRate, r > 0 else { return nil }; return amountValue / r }
     var rateSourceText: String {
-        if isManual(accountCode) { return "Tu tasa no cambia la de otros movimientos" }
-        return RatesViewModel.sourceText(quotes[accountCode]) + (quotes[accountCode] == nil ? "" : " · hoy")
+        if isManual(accountCode) { return String(localized: "Tu tasa no cambia la de otros movimientos") }
+        return RatesViewModel.sourceText(quotes[accountCode]) + (quotes[accountCode] == nil ? "" : String(localized: " · hoy"))
     }
     /// Other currencies the backend will snapshot this movement in.
     var alsoSavedIn: [(code: String, amount: Double, rate: Double)] {
@@ -349,19 +396,19 @@ final class TransactionFormViewModel {
 
     var missingFields: [String] {
         var m: [String] = []
-        if amountValue <= 0 { m.append("monto") }
-        if fromAccount == nil { m.append("cuenta") }
-        if draft.type == .transfer { if toAccount == nil { m.append("cuenta destino") } }
-        else if draft.categoryId == nil { m.append("categoría") }
+        if amountValue <= 0 { m.append(String(localized: "monto")) }
+        if fromAccount == nil { m.append(String(localized: "cuenta")) }
+        if draft.type == .transfer { if toAccount == nil { m.append(String(localized: "cuenta destino")) } }
+        else if draft.categoryId == nil { m.append(String(localized: "categoría")) }
         return m
     }
     var ctaTitle: String {
-        if !missingFields.isEmpty { return "Falta: " + missingFields.joined(separator: ", ") }
+        if !missingFields.isEmpty { return String(localized: "Falta: \(missingFields.joined(separator: ", "))") }
         let amount = Fmt.money(amountValue, currency: accountCode)
         switch draft.type {
-        case .expense: return (isEditing ? "Guardar cambios · " : "Guardar gasto · ") + amount
-        case .income: return (isEditing ? "Guardar cambios · " : "Guardar ingreso · ") + amount
-        case .transfer: return needsConversion ? "Cambiar \(amount) → \(Fmt.money(parse(toAmountText) ?? 0, currency: toCode))" : "Transferir · " + amount
+        case .expense: return isEditing ? String(localized: "Guardar cambios · \(amount)") : String(localized: "Guardar gasto · \(amount)")
+        case .income: return isEditing ? String(localized: "Guardar cambios · \(amount)") : String(localized: "Guardar ingreso · \(amount)")
+        case .transfer: return needsConversion ? String(localized: "Cambiar \(amount) → \(Fmt.money(parse(toAmountText) ?? 0, currency: toCode))") : String(localized: "Transferir · \(amount)")
         }
     }
     var savedSummary: String {
@@ -369,8 +416,8 @@ final class TransactionFormViewModel {
                             amount: Fmt.money(amountValue, currency: accountCode), account: fromAccount?.name)
     }
     var title: String {
-        if isEditing { return "Editar" }
-        switch draft.type { case .expense: return "Nuevo gasto"; case .income: return "Nuevo ingreso"; case .transfer: return needsConversion ? "Cambio de divisa" : "Transferencia" }
+        if isEditing { return String(localized: "Editar") }
+        switch draft.type { case .expense: return String(localized: "Nuevo gasto"); case .income: return String(localized: "Nuevo ingreso"); case .transfer: return needsConversion ? String(localized: "Cambio de divisa") : String(localized: "Transferencia") }
     }
     /// Category grid: selected/suggested first, then the rest (up to 7 + "Más").
     var gridCategories: [FinancialCategory] {

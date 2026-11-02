@@ -6,7 +6,7 @@ final class SettingsViewModel {
     private let biometrics: BiometricAuthenticator
     var biometricEnabled: Bool { didSet { settings.biometricEnabled = biometricEnabled } }
     var themeMode: String { didSet { settings.themeMode = themeMode } }
-    var language: String { didSet { settings.language = language } }
+    var language: String { settings.language }
     var llmKey: String
     var apiBase: String
     var mcpBase: String
@@ -18,7 +18,6 @@ final class SettingsViewModel {
         self.settings = settings; self.biometrics = biometrics
         biometricEnabled = settings.biometricEnabled
         themeMode = settings.themeMode
-        language = settings.language
         llmKey = settings.llmAPIKey ?? ""
         apiBase = AppConfig.apiBaseRaw
         mcpBase = AppConfig.mcpBaseURL
@@ -31,13 +30,13 @@ final class SettingsViewModel {
 
     func toggleBiometrics(_ on: Bool) async {
         // Confirm identity before enabling.
-        if on, !(await biometrics.authenticate(reason: "Confirma para activar el bloqueo")) { biometricEnabled = false; return }
+        if on, !(await biometrics.authenticate(reason: String(localized: "Confirma para activar el bloqueo"))) { biometricEnabled = false; return }
         biometricEnabled = on
     }
 
     func savePIN() {
-        guard PINHasher.isValid(newPIN) else { message = "El PIN debe tener 4 a 6 dígitos"; return }
-        settings.setPIN(newPIN); newPIN = ""; hasPIN = true; message = "PIN guardado"
+        guard PINHasher.isValid(newPIN) else { message = String(localized: "El PIN debe tener 4 a 6 dígitos"); return }
+        settings.setPIN(newPIN); newPIN = ""; hasPIN = true; message = String(localized: "PIN guardado")
     }
     func removePIN() { settings.setPIN(nil); hasPIN = false }
 
@@ -45,7 +44,7 @@ final class SettingsViewModel {
         settings.llmAPIKey = llmKey.trimmingCharacters(in: .whitespacesAndNewlines)
         AppConfig.apiBaseRaw = apiBase.trimmingCharacters(in: .whitespaces)
         AppConfig.mcpBaseURL = mcpBase.trimmingCharacters(in: .whitespaces)
-        message = "Configuración guardada"
+        message = String(localized: "Configuración guardada")
     }
 }
 
@@ -65,7 +64,7 @@ struct SettingsView: View {
                             VStack(alignment: .leading) {
                                 Text(u.fullName).font(.headline)
                                 Text(u.email).font(.subheadline).foregroundStyle(.secondary)
-                                Text(u.hasActiveSubscription ? "Plan Pro" : "Plan gratuito").font(.caption)
+                                Text(u.hasActiveSubscription ? String(localized: "Plan Pro") : String(localized: "Plan gratuito")).font(.caption)
                                     .padding(.horizontal, 8).padding(.vertical, 2).background(.tint.opacity(0.15), in: .capsule)
                             }
                         }
@@ -75,8 +74,9 @@ struct SettingsView: View {
                     Picker("Tema", selection: Binding(get: { session.themeMode }, set: { session.themeMode = $0 })) {
                         Text("Sistema").tag("system"); Text("Claro").tag("light"); Text("Oscuro").tag("dark")
                     }
-                    Picker("Idioma", selection: $vm.language) {
-                        Text("Español").tag("es"); Text("English").tag("en")
+                    // iOS restarts the app on a per-app language change, so every layer picks it up.
+                    Link(destination: URL(string: UIApplication.openSettingsURLString)!) {
+                        LabeledContent("Idioma", value: Locale.current.localizedString(forLanguageCode: vm.language)?.capitalized ?? vm.language)
                     }
                 }
                 Section {
@@ -95,7 +95,7 @@ struct SettingsView: View {
                 } header: { Text("Seguridad") } footer: { Text("El PIN sirve como respaldo si la biometría falla.") }
 
                 Section {
-                    LabeledContent("Apple Intelligence", value: vm.onDeviceAIAvailable ? "Disponible" : "No disponible")
+                    LabeledContent("Apple Intelligence", value: vm.onDeviceAIAvailable ? String(localized: "Disponible") : String(localized: "No disponible"))
                     SecureField("API key LLM en la nube", text: $vm.llmKey)
                 } header: { Text("Inteligencia artificial") } footer: {
                     Text("Vexia usa el LLM en la nube (texto + recibos) y, si falla, Apple Intelligence en el dispositivo para texto.")

@@ -8,7 +8,7 @@ struct AddActionSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private struct Item: Identifiable {
-        let id: Action; let title: String; let subtitle: String; let symbol: String; let tint: Color; let soft: Color
+        let id: Action; let title: LocalizedStringKey; let subtitle: LocalizedStringKey; let symbol: String; let tint: Color; let soft: Color
     }
 
     private var items: [Item] {

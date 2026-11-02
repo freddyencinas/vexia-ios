@@ -4,14 +4,14 @@ nonisolated enum ValidationError: LocalizedError, Equatable {
     case invalidEmail, shortPassword, missingName, invalidAmount, missingAccount, sameAccounts, missingCategory, missingSymbol
     var errorDescription: String? {
         switch self {
-        case .invalidEmail: "Correo electrónico inválido"
-        case .shortPassword: "La contraseña debe tener al menos 8 caracteres"
-        case .missingName: "Nombre y apellido son obligatorios"
-        case .invalidAmount: "El monto debe ser mayor a 0"
-        case .missingAccount: "Selecciona una cuenta"
-        case .sameAccounts: "Las cuentas de origen y destino deben ser distintas"
-        case .missingCategory: "Selecciona una categoría"
-        case .missingSymbol: "Ingresa el símbolo"
+        case .invalidEmail: String(localized: "Correo electrónico inválido")
+        case .shortPassword: String(localized: "La contraseña debe tener al menos 8 caracteres")
+        case .missingName: String(localized: "Nombre y apellido son obligatorios")
+        case .invalidAmount: String(localized: "El monto debe ser mayor a 0")
+        case .missingAccount: String(localized: "Selecciona una cuenta")
+        case .sameAccounts: String(localized: "Las cuentas de origen y destino deben ser distintas")
+        case .missingCategory: String(localized: "Selecciona una categoría")
+        case .missingSymbol: String(localized: "Ingresa el símbolo")
         }
     }
 }

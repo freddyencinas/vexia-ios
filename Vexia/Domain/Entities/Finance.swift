@@ -4,7 +4,7 @@ nonisolated enum TransactionType: String, CaseIterable, Identifiable, Hashable, 
     case income, expense, transfer
     var id: String { rawValue }
     var title: String {
-        switch self { case .income: "Ingreso"; case .expense: "Gasto"; case .transfer: "Transferencia" }
+        switch self { case .income: String(localized: "Ingreso"); case .expense: String(localized: "Gasto"); case .transfer: String(localized: "Transferencia") }
     }
 }
 
@@ -138,7 +138,7 @@ nonisolated struct TransactionDraft: Hashable, Sendable {
     enum RecurringFrequency: String, CaseIterable, Identifiable, Sendable {
         case daily, weekly, monthly, yearly
         var id: String { rawValue }
-        var title: String { switch self { case .daily: "Diario"; case .weekly: "Semanal"; case .monthly: "Mensual"; case .yearly: "Anual" } }
+        var title: String { switch self { case .daily: String(localized: "Diario"); case .weekly: String(localized: "Semanal"); case .monthly: String(localized: "Mensual"); case .yearly: String(localized: "Anual") } }
     }
 }
 

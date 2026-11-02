@@ -30,7 +30,15 @@ final class MockPrompts: PromptRepository {
 final class MockTransactionsRepo: TransactionsRepository {
     var created: [TransactionDraft] = []
     var deps = TransactionDependencies(hasDependencies: false, blockDeletion: false, wouldCauseNegativeBalance: false, message: "", affectedCount: 0)
-    func list(filter: TransactionFilter, page: Int, limit: Int) async throws -> Page<Transaction> { Page(items: [], pagination: .init()) }
+    private(set) var searches: [String] = []
+    var items: [Transaction] = []
+    /// Behaves like URLSession: a cancelled caller task aborts the request with URLError.cancelled.
+    func list(filter: TransactionFilter, page: Int, limit: Int) async throws -> Page<Transaction> {
+        searches.append(filter.search)
+        try? await Task.sleep(for: .milliseconds(50))
+        if Task.isCancelled { throw APIError.from(urlError: URLError(.cancelled)) }
+        return Page(items: items, pagination: .init())
+    }
     var transfers: [TransactionDraft] = []
     func create(_ d: TransactionDraft) async throws -> Transaction { created.append(d); return Fixtures.tx(id: 1) }
     func createTransfer(_ d: TransactionDraft) async throws { transfers.append(d) }
@@ -84,7 +92,8 @@ final class MockCatalog: CatalogRepository {
     var external: [String: Double] = [:]
     private(set) var saved: [(String, Double)] = []
     private(set) var externalCalls: [String] = []
-    func categories(type: String?) async throws -> [FinancialCategory] { Fixtures.categories }
+    var categoryList = Fixtures.categories
+    func categories(type: String?) async throws -> [FinancialCategory] { categoryList }
     func createCategory(name: String, icon: String, type: String) async throws {}
     func accounts() async throws -> [Account] { Fixtures.accounts }
     func accountBalances() async throws -> [Account] { Fixtures.accounts.map { var a = $0; a.currentBalance = 3258.12; return a } }
@@ -94,6 +103,12 @@ final class MockCatalog: CatalogRepository {
     func storedUSDRate(code: String) async throws -> Double? { stored[code] }
     func externalUSDRate(code: String) async throws -> Double? { externalCalls.append(code); return external[code] }
     func saveUSDRate(code: String, rate: Double, date: Date) async throws { saved.append((code, rate)) }
+}
+
+final class MemoryUsageStore: UsageStatsStore, @unchecked Sendable {
+    var stats: UsageStats?
+    func load() -> UsageStats? { stats }
+    func save(_ stats: UsageStats) { self.stats = stats }
 }
 
 enum Fixtures {
@@ -106,6 +121,13 @@ enum Fixtures {
         FinancialCategory(id: "c-food", code: "FOOD", name: "Comida", type: "expense", isGlobal: true),
         FinancialCategory(id: "c-sal", code: "SALARY", name: "Salario", type: "income", isGlobal: true),
     ]
+    static func tx(id: Int, type: String, category: String? = nil, account: String? = nil, to: String? = nil, date: String) -> Transaction {
+        var j: [String: JSON] = ["id": .number(Double(id)), "amount": 10, "currency": "USD", "description": "x", "date": .string(date), "type": .string(type)]
+        if let category { j["categoryId"] = .string(category) }
+        if type == "transfer" { j["fromAccountId"] = account.map(JSON.string) ?? .null; j["toAccountId"] = to.map(JSON.string) ?? .null }
+        else if let account { j["accountId"] = .string(account) }
+        return Mappers.transaction(.object(j))
+    }
     static func tx(id: Int) -> Transaction {
         Mappers.transaction(["id": .number(Double(id)), "amount": 10, "currency": "USD", "description": "x", "date": "2026-10-01", "type": "expense"])
     }

@@ -32,12 +32,12 @@ struct DashboardView: View {
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle(greeting)
-        .navigationSubtitle(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(Locale(identifier: "es"))).capitalizedFirst)
+        .navigationSubtitle(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(.current)).capitalizedFirst)
         .refreshable { await vm.load(force: true) }
         .task { await vm.load() }
     }
 
-    private var greeting: String { session.user.map { "Hola, \($0.firstName)" } ?? "Hola" }
+    private var greeting: String { session.user.map { String(localized: "Hola, \($0.firstName)") } ?? String(localized: "Hola") }
 
     private func insightCard(_ i: DashboardViewModel.Insight) -> some View {
         HStack(alignment: .top, spacing: 12) {
@@ -82,7 +82,7 @@ struct BalanceHeroCard: View {
                     Image(systemName: vm.hideBalances ? "eye.slash" : "eye").frame(width: 28, height: 22)
                 }
                 .buttonStyle(.glass).tint(.white)
-                .accessibilityLabel(vm.hideBalances ? "Mostrar saldos" : "Ocultar saldos")
+                .accessibilityLabel(vm.hideBalances ? String(localized: "Mostrar saldos") : String(localized: "Ocultar saldos"))
             }
             switch vm.balance {
             case .loading:
@@ -122,7 +122,7 @@ struct BalanceHeroCard: View {
             .contentTransition(.numericText()).minimumScaleFactor(0.5).lineLimit(1)
     }
 
-    private func status(_ text: String) -> some View {
+    private func status(_ text: LocalizedStringKey) -> some View {
         HStack {
             Text(text).font(.footnote)
             Spacer()
@@ -167,7 +167,7 @@ struct MonthSummaryCard: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func bar(_ t: String, _ v: Double, _ maxV: Double, _ fill: Color, _ track: Color) -> some View {
+    private func bar(_ t: LocalizedStringKey, _ v: Double, _ maxV: Double, _ fill: Color, _ track: Color) -> some View {
         VStack(spacing: 4) {
             HStack { Text(t).foregroundStyle(VexiaColor.textSecondary); Spacer(); Text(mask(Fmt.money(v, currency: month.currency))).fontWeight(.semibold).monospacedDigit() }
                 .font(.footnote)
@@ -232,6 +232,9 @@ struct AccountsStrip: View {
 struct CashFlowCard: View {
     let cashFlow: CashFlow
     let currency: String
+    // Legend/series labels are plain Strings, so localize at creation.
+    private var incomeLabel: String { String(localized: "Ingresos") }
+    private var expensesLabel: String { String(localized: "Gastos") }
     var body: some View {
         SurfaceCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -239,9 +242,9 @@ struct CashFlowCard: View {
                 Chart {
                     ForEach(cashFlow.points) { p in
                         BarMark(x: .value("Mes", p.date, unit: .month), y: .value("Monto", p.income))
-                            .foregroundStyle(by: .value("Tipo", "Ingresos")).position(by: .value("Tipo", "Ingresos"))
+                            .foregroundStyle(by: .value("Tipo", incomeLabel)).position(by: .value("Tipo", incomeLabel))
                         BarMark(x: .value("Mes", p.date, unit: .month), y: .value("Monto", p.expenses))
-                            .foregroundStyle(by: .value("Tipo", "Gastos")).position(by: .value("Tipo", "Gastos"))
+                            .foregroundStyle(by: .value("Tipo", expensesLabel)).position(by: .value("Tipo", expensesLabel))
                     }
                     ForEach(cashFlow.points) { p in
                         LineMark(x: .value("Mes", p.date, unit: .month), y: .value("Neto", p.netFlow))
@@ -249,7 +252,7 @@ struct CashFlowCard: View {
                             .symbol(.circle)
                     }
                 }
-                .chartForegroundStyleScale(["Ingresos": VexiaColor.income, "Gastos": VexiaColor.error])
+                .chartForegroundStyleScale([incomeLabel: VexiaColor.income, expensesLabel: VexiaColor.error])
                 .chartXAxis { AxisMarks(values: .stride(by: .month)) { _ in AxisValueLabel(format: .dateTime.month(.abbreviated)) } }
                 .frame(height: 200)
                 HStack {

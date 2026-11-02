@@ -15,7 +15,7 @@ nonisolated enum Mappers {
     static func session(_ data: JSON) throws -> AuthSession {
         let t = data["tokens"]
         guard let a = t["accessToken"].string, let r = t["refreshToken"].string else {
-            throw APIError(message: "Respuesta de autenticación inválida", code: .decoding, statusCode: nil)
+            throw APIError(message: String(localized: "Respuesta de autenticación inválida"), code: .decoding, statusCode: nil)
         }
         return AuthSession(user: user(data["user"]), tokens: AuthTokens(accessToken: a, refreshToken: r))
     }

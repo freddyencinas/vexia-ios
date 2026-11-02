@@ -58,11 +58,11 @@ struct VexiaCaptureView: View {
 
     private var statusText: String {
         switch vm.phase {
-        case .idle: mode == .voice ? "Toca el micrófono y dime tu gasto o ingreso" : "Elige la foto de tu comprobante"
-        case .listening: "Te escucho… (ej. “gasté 50 en almuerzo”)"
-        case .thinking: "Analizando…"
-        case .review: "¡Listo!"
-        case .error: "No pude procesarlo"
+        case .idle: mode == .voice ? String(localized: "Toca el micrófono y dime tu gasto o ingreso") : String(localized: "Elige la foto de tu comprobante")
+        case .listening: String(localized: "Te escucho… (ej. “gasté 50 en almuerzo”)")
+        case .thinking: String(localized: "Analizando…")
+        case .review: String(localized: "¡Listo!")
+        case .error: String(localized: "No pude procesarlo")
         }
     }
 

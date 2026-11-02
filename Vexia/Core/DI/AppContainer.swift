@@ -22,6 +22,7 @@ final class AppContainer {
     let prompts: PromptRepository
     let llm: LLMProvider
     let makeTranscriber: () -> SpeechTranscriber
+    let usage: UsageStatsUseCase
 
     init(secure: SecureStore = KeychainStore()) {
         tokens = TokenStore(store: secure)
@@ -45,6 +46,7 @@ final class AppContainer {
             AppleFoundationModelsProvider(),
         ])
         makeTranscriber = { AppleSpeechTranscriber() }
+        usage = UsageStatsUseCase(repo: transactions, store: UserDefaultsUsageStatsStore())
         api.languageCode = settings.language
     }
 
@@ -53,7 +55,7 @@ final class AppContainer {
     var register: RegisterUseCase { .init(repo: auth) }
     var googleLogin: GoogleLoginUseCase { .init(google: google, repo: auth) }
     var restoreSession: RestoreSessionUseCase { .init(repo: auth, settings: settings) }
-    var saveTransaction: SaveTransactionUseCase { .init(repo: transactions) }
+    var saveTransaction: SaveTransactionUseCase { .init(repo: transactions, usage: usage) }
     var deleteTransaction: DeleteTransactionUseCase { .init(repo: transactions) }
     var loadDashboard: LoadDashboardUseCase { .init(repo: dashboard) }
     var classifyTransaction: ClassifyTransactionUseCase { .init(llm: llm, prompts: prompts) }

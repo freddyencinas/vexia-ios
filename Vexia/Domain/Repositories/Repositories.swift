@@ -101,7 +101,7 @@ nonisolated struct AgentContext: Hashable, Sendable {
 protocol SettingsRepository: AnyObject, Sendable {
     var biometricEnabled: Bool { get set }
     var themeMode: String { get set } // system | light | dark
-    var language: String { get set }  // es | en
+    var language: String { get }  // es | en — follows the app language chosen in iOS Settings
     var hasPIN: Bool { get }
     func setPIN(_ pin: String?)
     func verifyPIN(_ pin: String) -> Bool

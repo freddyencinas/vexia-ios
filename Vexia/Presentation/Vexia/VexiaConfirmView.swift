@@ -30,9 +30,9 @@ final class VexiaConfirmViewModel {
     var typeCategories: [FinancialCategory] { categories.filter { $0.type == draft.type.rawValue } }
     var missing: [String] {
         var m: [String] = []
-        if draft.amount <= 0 { m.append("monto") }
-        if account == nil { m.append("cuenta") }
-        if draft.type != .transfer && category == nil { m.append("categoría") }
+        if draft.amount <= 0 { m.append(String(localized: "monto")) }
+        if account == nil { m.append(String(localized: "cuenta")) }
+        if draft.type != .transfer && category == nil { m.append(String(localized: "categoría")) }
         return m
     }
     var amountText: String { Fmt.money(draft.amount, currency: account?.code ?? draft.currencyCode.nilIfEmpty ?? "USD") }
@@ -57,6 +57,7 @@ struct VexiaConfirmView: View {
     var onRetry: () -> Void
     @State private var showCategoryPicker = false
     @State private var showNoteEditor = false
+    @State private var showDatePicker = false
     @State private var noteText = ""
     @Environment(\.dismiss) private var dismiss
     @Environment(SavedBannerCenter.self) private var savedBanner: SavedBannerCenter?
@@ -95,6 +96,7 @@ struct VexiaConfirmView: View {
                 Button("Cancelar", role: .cancel) {}
                 Button("Guardar") { vm.draft.description = noteText.trimmingCharacters(in: .whitespacesAndNewlines) }
             }
+            .sheet(isPresented: $showDatePicker) { DatePickerSheet(date: $vm.draft.date) }
             .sheet(isPresented: $showCategoryPicker) {
                 CategoryPickerSheet(categories: vm.typeCategories, selection: $vm.draft.categoryId)
             }
@@ -114,7 +116,7 @@ struct VexiaConfirmView: View {
             Text(vm.amountText).font(.system(size: 40, weight: .bold, design: .rounded)).monospacedDigit()
             FlowChips {
                 Button { showCategoryPicker = true } label: {
-                    chip("Categoría", vm.category.map { c in [CategorySymbol.emoji(c.icon), c.name].compactMap { $0 }.joined(separator: " ") } ?? "Elegir",
+                    chip("Categoría", vm.category.map { c in [CategorySymbol.emoji(c.icon), c.name].compactMap { $0 }.joined(separator: " ") } ?? String(localized: "Elegir"),
                          warn: vm.category == nil && vm.draft.type != .transfer)
                 }
                 .buttonStyle(.plain)
@@ -122,15 +124,17 @@ struct VexiaConfirmView: View {
                     Picker("Cuenta", selection: $vm.draft.accountId) {
                         ForEach(vm.accounts) { Text("\($0.name) · \($0.code)").tag(Optional($0.id)) }
                     }
-                } label: { chip("Cuenta", vm.account?.name ?? "Elegir", warn: vm.account == nil) }
+                } label: { chip("Cuenta", vm.account?.name ?? String(localized: "Elegir"), warn: vm.account == nil) }
                 Menu {
                     Button("Hoy") { vm.draft.date = .now }
                     Button("Ayer") { vm.draft.date = Calendar.current.date(byAdding: .day, value: -1, to: .now)! }
-                } label: { chip("Fecha", Calendar.current.isDateInToday(vm.draft.date) ? "Hoy" : Fmt.shortDate(vm.draft.date), warn: false) }
+                    Button("Otra fecha…", systemImage: "calendar") { showDatePicker = true }
+                } label: { chip("Fecha", Calendar.current.isDateInToday(vm.draft.date) ? String(localized: "Hoy")
+                    : Calendar.current.isDateInYesterday(vm.draft.date) ? String(localized: "Ayer") : Fmt.shortDate(vm.draft.date), warn: false) }
                 Button {
                     noteText = vm.draft.description
                     showNoteEditor = true
-                } label: { chip("Nota", vm.draft.description.isEmpty ? "Agregar" : vm.draft.description, warn: false) }
+                } label: { chip("Nota", vm.draft.description.isEmpty ? String(localized: "Agregar") : vm.draft.description, warn: false) }
                 .buttonStyle(.plain)
             }
             .onChange(of: vm.draft.accountId) { vm.syncCurrency() }
@@ -139,7 +143,7 @@ struct VexiaConfirmView: View {
         .background(.background, in: .rect(cornerRadius: 22))
     }
 
-    private func chip(_ k: String, _ v: String, warn: Bool) -> some View {
+    private func chip(_ k: LocalizedStringKey, _ v: String, warn: Bool) -> some View {
         HStack(spacing: 6) {
             Text(k).foregroundStyle(VexiaColor.textSecondary)
             Text(v).fontWeight(.semibold).foregroundStyle(.primary)
@@ -162,7 +166,7 @@ struct VexiaConfirmView: View {
                     }
                 }
             } label: {
-                Text(vm.missing.isEmpty ? "Confirmar \(vm.draft.type.title.lowercased())" : "Falta: \(vm.missing.joined(separator: ", "))")
+                Text(vm.missing.isEmpty ? String(localized: "Confirmar \(vm.draft.type.title.lowercased())") : String(localized: "Falta: \(vm.missing.joined(separator: ", "))"))
                     .font(.headline).frame(maxWidth: .infinity, minHeight: 34)
             }
             .buttonStyle(.glassProminent).controlSize(.large)

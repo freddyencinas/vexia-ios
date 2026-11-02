@@ -27,11 +27,11 @@ struct TransactionsView: View {
                 .listRowBackground(Color.clear)
             case .loaded where vm.items.isEmpty:
                 ContentUnavailableView {
-                    Label(vm.filter.search.isEmpty ? "Sin movimientos" : "Sin resultados", systemImage: "tray")
+                    Label(vm.filter.search.isEmpty ? String(localized: "Sin movimientos") : String(localized: "Sin resultados"), systemImage: "tray")
                 } description: {
                     Text(vm.filter.search.isEmpty
-                         ? (vm.month == nil ? "Registra uno con el botón +." : "No hay registros en \(vm.monthTitle.lowercased()). Registra uno con el botón + o revisa otro mes.")
-                         : "Prueba con otra palabra o monto.")
+                         ? (vm.month == nil ? String(localized: "Registra uno con el botón +.") : String(localized: "No hay registros en \(vm.monthTitle.lowercased()). Registra uno con el botón + o revisa otro mes."))
+                         : String(localized: "Prueba con otra palabra o monto."))
                 } actions: {
                     if vm.month != nil { Button("Ver todo el historial") { vm.showAllTime() }.buttonStyle(.glass) }
                 }
@@ -57,7 +57,7 @@ struct TransactionsView: View {
                         }
                     } header: {
                         HStack {
-                            Text(section.day.formatted(.dateTime.weekday(.wide).day().month(.abbreviated).locale(Locale(identifier: "es"))).uppercased())
+                            Text(section.day.formatted(.dateTime.weekday(.wide).day().month(.abbreviated).locale(.current)).uppercased())
                             Spacer()
                             Text(vm.dayTotal(section.items)).monospacedDigit()
                         }
@@ -68,7 +68,7 @@ struct TransactionsView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .searchable(text: $vm.filter.search, prompt: "Buscar por nombre o monto")
+        .searchable(text: $vm.filter.search, prompt: "Buscar por nombre, categoría o monto")
         .onChange(of: vm.filter.search) { vm.scheduleReload() }
         .onChange(of: vm.filter.type) { Task { await vm.reload() } }
         .onChange(of: vm.filter.accountId) { Task { await vm.reload() } }
@@ -84,7 +84,7 @@ struct TransactionsView: View {
         .confirmationDialog("¿Eliminar transacción?", item: $vm.pendingDelete) { _ in
             Button("Eliminar", role: .destructive) { Task { await vm.confirmDelete() } }
         } message: { _ in
-            Text(vm.deleteWarning ?? "Esta acción no se puede deshacer.")
+            Text(vm.deleteWarning ?? String(localized: "Esta acción no se puede deshacer."))
         }
         .errorAlert($vm.errorMessage)
     }
@@ -110,18 +110,18 @@ struct TransactionsView: View {
     private var chips: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
-                chip("Todos", vm.filter.type == nil) { vm.filter.type = nil }
-                chip("Gastos", vm.filter.type == .expense) { vm.filter.type = .expense }
-                chip("Ingresos", vm.filter.type == .income) { vm.filter.type = .income }
-                chip("Transferencias", vm.filter.type == .transfer) { vm.filter.type = .transfer }
+                chip(String(localized: "Todos"), vm.filter.type == nil) { vm.filter.type = nil }
+                chip(String(localized: "Gastos"), vm.filter.type == .expense) { vm.filter.type = .expense }
+                chip(String(localized: "Ingresos"), vm.filter.type == .income) { vm.filter.type = .income }
+                chip(String(localized: "Transferencias"), vm.filter.type == .transfer) { vm.filter.type = .transfer }
                 Menu {
                     Button("Todas las cuentas") { vm.filter.accountId = nil }
                     ForEach(vm.accounts) { a in Button(a.name) { vm.filter.accountId = a.id } }
-                } label: { chipLabel(vm.accounts.first { $0.id == vm.filter.accountId }?.name ?? "Cuenta", vm.filter.accountId != nil, menu: true) }
+                } label: { chipLabel(vm.accounts.first { $0.id == vm.filter.accountId }?.name ?? String(localized: "Cuenta"), vm.filter.accountId != nil, menu: true) }
                 Menu {
                     Button("Todas las categorías") { vm.filter.categoryId = nil }
                     ForEach(vm.categories.filter { $0.type == "expense" || $0.type == "income" }) { c in Button([CategorySymbol.emoji(c.icon), c.name].compactMap { $0 }.joined(separator: " ")) { vm.filter.categoryId = c.id } }
-                } label: { chipLabel(vm.categories.first { $0.id == vm.filter.categoryId }?.name ?? "Categoría", vm.filter.categoryId != nil, menu: true) }
+                } label: { chipLabel(vm.categories.first { $0.id == vm.filter.categoryId }?.name ?? String(localized: "Categoría"), vm.filter.categoryId != nil, menu: true) }
             }
             .padding(.vertical, 2)
         }
@@ -169,7 +169,7 @@ struct TransactionsView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func stat(_ title: String, _ value: String, _ color: Color) -> some View {
+    private func stat(_ title: LocalizedStringKey, _ value: String, _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.caption).foregroundStyle(VexiaColor.textSecondary)
             Text(value).font(.headline.monospacedDigit()).foregroundStyle(color).lineLimit(1).minimumScaleFactor(0.6)

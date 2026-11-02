@@ -15,11 +15,11 @@ nonisolated struct Budget: Identifiable, Hashable, Sendable {
     var items: [BudgetItem]
 
     var periodTitle: String {
-        ["weekly": "Semanal", "biweekly": "Quincenal", "monthly": "Mensual", "quarterly": "Trimestral",
-         "yearly": "Anual", "custom": "Personalizado"][period] ?? period.capitalized
+        ["weekly": String(localized: "Semanal"), "biweekly": String(localized: "Quincenal"), "monthly": String(localized: "Mensual"), "quarterly": String(localized: "Trimestral"),
+         "yearly": String(localized: "Anual"), "custom": String(localized: "Personalizado")][period] ?? period.capitalized
     }
     var statusTitle: String {
-        ["draft": "Borrador", "active": "Activo", "paused": "Pausado", "archived": "Archivado", "completed": "Completado"][status] ?? status
+        ["draft": String(localized: "Borrador"), "active": String(localized: "Activo"), "paused": String(localized: "Pausado"), "archived": String(localized: "Archivado"), "completed": String(localized: "Completado")][status] ?? status
     }
 }
 

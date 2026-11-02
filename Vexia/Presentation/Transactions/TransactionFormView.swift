@@ -43,6 +43,7 @@ struct TransactionFormView: View {
                 await vm.loadCatalog()
                 if !vm.isEditing && vm.amountText.isEmpty { focus = .amount }
             }
+            .sheet(isPresented: $showDatePicker) { DatePickerSheet(date: $vm.draft.date) }
             .sheet(isPresented: $showCategoryPicker) {
                 CategoryPickerSheet(categories: vm.filteredCategories, selection: $vm.draft.categoryId)
             }
@@ -78,7 +79,7 @@ struct TransactionFormView: View {
 
     private var amountHeader: some View {
         VStack(spacing: 8) {
-            accountMenu(selection: $vm.draft.accountId, label: vm.fromAccount.map { "\($0.name) · \(Fmt.symbol($0.code) ?? $0.code)" } ?? "Elegir cuenta")
+            accountMenu(selection: $vm.draft.accountId, label: vm.fromAccount.map { "\($0.name) · \(Fmt.symbol($0.code) ?? $0.code)" } ?? String(localized: "Elegir cuenta"))
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(Fmt.symbol(vm.accountCode) ?? vm.accountCode).font(.system(size: 30, weight: .semibold, design: .rounded))
                     .foregroundStyle(VexiaColor.textSecondary)
@@ -105,7 +106,7 @@ struct TransactionFormView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Tasa usada").font(.footnote).foregroundStyle(VexiaColor.textSecondary)
-                    Text(vm.usedRate.map { "1 USD = \(Fmt.grouped($0)) \(Fmt.symbol(code) ?? code)" } ?? "Sin tasa para \(code)")
+                    Text(vm.usedRate.map { "1 USD = \(Fmt.grouped($0)) \(Fmt.symbol(code) ?? code)" } ?? String(localized: "Sin tasa para \(code)"))
                         .font(.title3.weight(.bold)).monospacedDigit()
                 }
                 Spacer()
@@ -113,7 +114,7 @@ struct TransactionFormView: View {
                     .font(.subheadline.weight(.semibold)).buttonStyle(.glass)
             }
             HStack(spacing: 6) {
-                Text(manual ? "SOLO ESTE MOVIMIENTO" : "AUTOMÁTICA").font(.caption2.weight(.bold))
+                Text(manual ? String(localized: "SOLO ESTE MOVIMIENTO") : String(localized: "AUTOMÁTICA")).font(.caption2.weight(.bold))
                     .padding(.horizontal, 8).padding(.vertical, 3)
                     .background(manual ? VexiaColor.amberSoft : VexiaColor.greenSoft, in: .rect(cornerRadius: 6))
                     .foregroundStyle(manual ? VexiaColor.warningText : VexiaColor.incomeText)
@@ -128,7 +129,7 @@ struct TransactionFormView: View {
                 Text("También se guardará en").font(.subheadline.weight(.semibold))
                 ForEach(also, id: \.code) { item in
                     HStack {
-                        Text(item.code == "USD" ? "Dólares" : (RatesViewModel.name(item.code) + " · 1 USD = \(Fmt.grouped(item.rate))"))
+                        Text(item.code == "USD" ? String(localized: "Dólares") : (RatesViewModel.name(item.code) + " · 1 USD = \(Fmt.grouped(item.rate))"))
                             .foregroundStyle(VexiaColor.textSecondary)
                         Spacer()
                         Text(Fmt.money(item.amount, currency: item.code)).fontWeight(.semibold).monospacedDigit()
@@ -182,7 +183,7 @@ struct TransactionFormView: View {
         .onChange(of: vm.draft.toAccountId) { Task { await vm.accountsChanged() } }
     }
 
-    private func sideCard<Amount: View>(title: String, account: Account?, selection: Binding<String?>, exclude: String? = nil,
+    private func sideCard<Amount: View>(title: LocalizedStringKey, account: Account?, selection: Binding<String?>, exclude: String? = nil,
                                         @ViewBuilder amount: () -> Amount) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -192,7 +193,7 @@ struct TransactionFormView: View {
             }
             .font(.footnote).foregroundStyle(VexiaColor.textSecondary)
             HStack {
-                accountMenu(selection: selection, label: account.map { "\($0.name) · \(Fmt.symbol($0.code) ?? $0.code)" } ?? "Elegir cuenta", exclude: exclude)
+                accountMenu(selection: selection, label: account.map { "\($0.name) · \(Fmt.symbol($0.code) ?? $0.code)" } ?? String(localized: "Elegir cuenta"), exclude: exclude)
                 Spacer()
                 amount()
             }
@@ -207,12 +208,12 @@ struct TransactionFormView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Tasa").font(.footnote).foregroundStyle(VexiaColor.textSecondary)
-                    Text(vm.fxRateValue.map { vm.rateLabel(from: from, to: to, rate: $0) } ?? "Sin tasa").font(.title3.weight(.bold)).monospacedDigit()
+                    Text(vm.fxRateValue.map { vm.rateLabel(from: from, to: to, rate: $0) } ?? String(localized: "Sin tasa")).font(.title3.weight(.bold)).monospacedDigit()
                 }
                 Spacer()
             }
             Picker("Tasa a usar", selection: Binding(get: { vm.usesDayFXRate }, set: { if $0 { vm.useDayFXRate() } else { focus = .rate } })) {
-                Text(vm.dayCrossRate.map { "Del día · \(Fmt.grouped(dayDisplay($0, to: to)))" } ?? "Del día").tag(true)
+                Text(vm.dayCrossRate.map { String(localized: "Del día · \(Fmt.grouped(dayDisplay($0, to: to)))") } ?? String(localized: "Del día")).tag(true)
                 Text("La que me dieron").tag(false)
             }
             .pickerStyle(.segmented)
@@ -225,10 +226,15 @@ struct TransactionFormView: View {
                 .font(.subheadline)
             }
             if let diff = vm.fxShortfall, let day = vm.dayCrossRate {
-                Text("Con la tasa del día recibirías \(Fmt.money(vm.amountValue * day, currency: to)). Diferencia: \(Fmt.money(abs(diff), currency: to)) \(diff > 0 ? "menos" : "más").")
-                    .font(.footnote).foregroundStyle(VexiaColor.warningText)
-                    .padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(VexiaColor.amberSoft, in: .rect(cornerRadius: 10))
+                let atDay = Fmt.money(vm.amountValue * day, currency: to), gap = Fmt.money(abs(diff), currency: to)
+                // Whole sentences per case: a spliced "menos"/"más" can't be reordered by translators.
+                Group {
+                    if diff > 0 { Text("Con la tasa del día recibirías \(atDay). Diferencia: \(gap) menos.") }
+                    else { Text("Con la tasa del día recibirías \(atDay). Diferencia: \(gap) más.") }
+                }
+                .font(.footnote).foregroundStyle(VexiaColor.warningText)
+                .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(VexiaColor.amberSoft, in: .rect(cornerRadius: 10))
             }
         }
         .padding(14)
@@ -283,19 +289,18 @@ struct TransactionFormView: View {
             HStack {
                 Text("Fecha")
                 Spacer()
-                dateChip("Hoy", Calendar.current.isDateInToday(vm.draft.date)) { vm.draft.date = .now; showDatePicker = false }
-                dateChip("Ayer", Calendar.current.isDateInYesterday(vm.draft.date)) {
-                    vm.draft.date = Calendar.current.date(byAdding: .day, value: -1, to: .now)!; showDatePicker = false
+                dateChip(String(localized: "Hoy"), Calendar.current.isDateInToday(vm.draft.date)) { vm.draft.date = .now }
+                dateChip(String(localized: "Ayer"), Calendar.current.isDateInYesterday(vm.draft.date)) {
+                    vm.draft.date = Calendar.current.date(byAdding: .day, value: -1, to: .now)!
                 }
-                dateChip(isOtherDate ? Fmt.shortDate(vm.draft.date) : "Otra…", isOtherDate) { showDatePicker.toggle() }
+                // Selected custom date reads as a chip with its own label ("28 oct") + calendar icon.
+                dateChip(isOtherDate ? Fmt.shortDate(vm.draft.date) : String(localized: "Otra…"), isOtherDate,
+                         systemImage: "calendar") { showDatePicker = true }
+                    .accessibilityLabel(isOtherDate ? Text("Fecha: \(Fmt.shortDate(vm.draft.date))") : Text("Elegir otra fecha"))
             }
             .frame(minHeight: 52)
-            if showDatePicker {
-                DatePicker("Fecha", selection: $vm.draft.date, in: ...Date.now.addingTimeInterval(86_400 * 365), displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-            }
             Divider()
-            TextField(vm.draft.type == .transfer ? "Descripción (opcional)" : "Añadir nota (opcional)", text: $vm.draft.description, axis: .vertical)
+            TextField(vm.draft.type == .transfer ? String(localized: "Descripción (opcional)") : String(localized: "Añadir nota (opcional)"), text: $vm.draft.description, axis: .vertical)
                 .focused($focus, equals: .note)
                 .frame(minHeight: 52)
             if vm.draft.type != .transfer {
@@ -378,13 +383,17 @@ struct TransactionFormView: View {
     private var optionsSummary: String {
         var parts: [String] = []
         if vm.draft.isRecurring { parts.append(vm.draft.recurringFrequency.title) }
-        if !vm.draft.tags.isEmpty { parts.append("\(vm.draft.tags.count) etiqueta\(vm.draft.tags.count == 1 ? "" : "s")") }
-        return parts.isEmpty ? "Recurrente · Etiquetas" : parts.joined(separator: " · ")
+        if !vm.draft.tags.isEmpty { parts.append(vm.draft.tags.count == 1 ? String(localized: "1 etiqueta") : String(localized: "\(vm.draft.tags.count) etiquetas")) }
+        return parts.isEmpty ? String(localized: "Recurrente · Etiquetas") : parts.joined(separator: " · ")
     }
 
-    private func dateChip(_ title: String, _ on: Bool, action: @escaping () -> Void) -> some View {
+    private func dateChip(_ title: String, _ on: Bool, systemImage: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title).font(.footnote.weight(.semibold)).padding(.horizontal, 12).frame(minHeight: 32)
+            HStack(spacing: 4) {
+                if let systemImage { Image(systemName: systemImage).font(.caption) }
+                Text(title)
+            }
+            .font(.footnote.weight(.semibold)).padding(.horizontal, 12).frame(minHeight: 32)
                 .background(on ? VexiaColor.brandFill : Color(.secondarySystemBackground), in: .capsule)
                 .foregroundStyle(on ? .white : .primary)
         }

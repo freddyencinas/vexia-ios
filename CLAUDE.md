@@ -41,6 +41,13 @@ periphery scan --strict -- -destination 'generic/platform=iOS Simulator'   # con
 - Sin uso de verdad → borrarlo. Funcionalidad pendiente → conservar con `// periphery:ignore - pending: <qué falta>`.
 - Propiedades de entidades mapeadas desde la API pero aún no mostradas se conservan (`retain_assign_only_properties`).
 
+## Idiomas (String Catalog)
+- `Vexia/Resources/Localizable.xcstrings`: español = idioma base (las claves son el texto en español), inglés traducido.
+- Literales en APIs SwiftUI (`Text`, `Button`, `Label`, `navigationTitle`…) ya se localizan. Strings fuera de la vista (ViewModels, `enum` `title`, errores, ternarios) → `String(localized: "…")`. Helpers propios que reciben literales → parámetro `LocalizedStringKey`.
+- No localizar: códigos/keys de API, prompts de IA, logs, datos del backend.
+- Idioma = idioma por app de iOS (`SettingsRepository.language` lee `Bundle.main.preferredLocalizations`); no hay selector propio.
+- Al agregar textos: compilar en Xcode (agrega las claves al catálogo) y traducir al inglés; `catalogIsFullyTranslatedToEnglish` falla si falta alguna.
+
 ## Arquitectura (Clean Architecture + MVVM, dependencias hacia adentro)
 ```
 Presentation  (Views + @Observable ViewModels por feature)

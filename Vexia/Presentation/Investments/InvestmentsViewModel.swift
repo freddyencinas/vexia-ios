@@ -20,9 +20,9 @@ struct HoldingRow: Identifiable, Hashable {
 @Observable
 final class InvestmentsViewModel {
     enum Segment: String, CaseIterable, Identifiable { case stocks, crypto; var id: String { rawValue }
-        var title: String { self == .stocks ? "Acciones" : "Cripto" } }
+        var title: String { self == .stocks ? String(localized: "Acciones") : String(localized: "Cripto") } }
     enum Tab: String, CaseIterable, Identifiable { case portfolio, pnl, sales, operations; var id: String { rawValue }
-        var title: String { switch self { case .portfolio: "Portafolio"; case .pnl: "P&L"; case .sales: "Ventas"; case .operations: "Operaciones" } } }
+        var title: String { switch self { case .portfolio: String(localized: "Portafolio"); case .pnl: String(localized: "P&L"); case .sales: String(localized: "Ventas"); case .operations: String(localized: "Operaciones") } } }
 
     var segment: Segment = .stocks
     var tab: Tab = .portfolio
@@ -133,11 +133,11 @@ final class InvestmentsViewModel {
         guard total > 0 else { return [] }
         switch segment {
         case .stocks:
-            let groups = Dictionary(grouping: h, by: { $0.sector?.nilIfEmpty ?? "Otros" })
+            let groups = Dictionary(grouping: h, by: { $0.sector?.nilIfEmpty ?? String(localized: "Otros") })
             return groups.map { ($0.key, $0.value.reduce(0) { $0 + ($1.value ?? $1.invested) } / total) }.sorted { $0.1 > $1.1 }
         case .crypto:
             let stable = h.filter(\.isStablecoin).reduce(0) { $0 + ($1.value ?? $1.invested) }
-            return [("Volátil", (total - stable) / total), ("Stablecoins", stable / total)].filter { $0.1 > 0 }
+            return [(String(localized: "Volátil"), (total - stable) / total), (String(localized: "Stablecoins"), stable / total)].filter { $0.1 > 0 }
         }
     }
 
@@ -209,9 +209,9 @@ final class InvestmentFormViewModel {
     }
     var canSubmit: Bool { !draft.symbol.trimmingCharacters(in: .whitespaces).isEmpty && qty > 0 && price > 0 && !overMax && !isSaving }
     var ctaTitle: String {
-        if overMax { return "Solo tienes \(Fmt.quantity(maxSell ?? 0, crypto: isCrypto))" }
+        if overMax { return String(localized: "Solo tienes \(Fmt.quantity(maxSell ?? 0, crypto: isCrypto))") }
         let sym = draft.symbol.isEmpty ? "" : " " + draft.symbol.uppercased()
-        let verb = editingId != nil ? "Guardar" : (isSell ? "Vender" : "Comprar")
+        let verb = editingId != nil ? String(localized: "Guardar") : (isSell ? String(localized: "Vender") : String(localized: "Comprar"))
         return "\(verb) \(Fmt.grouped(qty, decimals: qty == qty.rounded() ? 0 : 4))\(sym) · \(Fmt.money(total))"
     }
 

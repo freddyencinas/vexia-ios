@@ -75,8 +75,8 @@ final class AssistantChatViewModel {
     private let agent: BudgetAgent
     private let context: () -> AgentContext
 
-    static let suggestions = ["Ayúdame a crear un presupuesto mensual", "¿En qué gasto más?",
-                              "¿Cuánto puedo ahorrar este mes?", "Analiza mis últimos 3 meses"]
+    static var suggestions: [String] { [String(localized: "Ayúdame a crear un presupuesto mensual"), String(localized: "¿En qué gasto más?"),
+                              String(localized: "¿Cuánto puedo ahorrar este mes?"), String(localized: "Analiza mis últimos 3 meses")] }
 
     init(agent: BudgetAgent, context: @escaping () -> AgentContext) {
         self.agent = agent; self.context = context

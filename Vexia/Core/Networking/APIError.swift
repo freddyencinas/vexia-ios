@@ -14,7 +14,7 @@ nonisolated struct APIError: LocalizedError, Equatable {
 
     nonisolated static func from(status: Int, body: JSON) -> APIError {
         // Backend shape: {success:false, error:{code, message, messageKey}} (or legacy string `error`).
-        let msg = body["error"]["message"].string ?? body["message"].string ?? body["error"].string ?? "Error \(status)"
+        let msg = body["error"]["message"].string ?? body["message"].string ?? body["error"].string ?? String(localized: "Error \(status)")
         let code: Code = switch status {
         case 401: .unauthorized
         case 404: .notFound
@@ -26,9 +26,9 @@ nonisolated struct APIError: LocalizedError, Equatable {
 
     nonisolated static func from(urlError: URLError) -> APIError {
         switch urlError.code {
-        case .timedOut: APIError(message: "La solicitud tardó demasiado", code: .timeout, statusCode: nil)
-        case .cancelled: APIError(message: "Solicitud cancelada", code: .cancelled, statusCode: nil)
-        default: APIError(message: "Sin conexión con el servidor", code: .network, statusCode: nil)
+        case .timedOut: APIError(message: String(localized: "La solicitud tardó demasiado"), code: .timeout, statusCode: nil)
+        case .cancelled: APIError(message: String(localized: "Solicitud cancelada"), code: .cancelled, statusCode: nil)
+        default: APIError(message: String(localized: "Sin conexión con el servidor"), code: .network, statusCode: nil)
         }
     }
 }

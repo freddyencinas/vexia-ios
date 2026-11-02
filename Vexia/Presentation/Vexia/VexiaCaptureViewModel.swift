@@ -19,8 +19,11 @@ final class VexiaCaptureViewModel {
     private var categories: [FinancialCategory] = []
     private var silenceTask: Task<Void, Never>?
 
-    init(classify: ClassifyTransactionUseCase, catalog: CatalogRepository, transcriber: SpeechTranscriber, language: String) {
-        self.classify = classify; self.catalog = catalog; self.transcriber = transcriber; self.language = language
+    private let usage: UsageStats?
+
+    init(classify: ClassifyTransactionUseCase, catalog: CatalogRepository, transcriber: SpeechTranscriber, language: String,
+         usage: UsageStats? = nil) {
+        self.classify = classify; self.catalog = catalog; self.transcriber = transcriber; self.language = language; self.usage = usage
     }
 
     func prepare() async {
@@ -31,7 +34,7 @@ final class VexiaCaptureViewModel {
 
     func startListening() async {
         guard await transcriber.requestAuthorization() else {
-            phase = .error("Activa los permisos de micrófono y reconocimiento de voz en Ajustes."); return
+            phase = .error(String(localized: "Activa los permisos de micrófono y reconocimiento de voz en Ajustes.")); return
         }
         transcript = ""
         do {
@@ -74,7 +77,7 @@ final class VexiaCaptureViewModel {
         do {
             let r = try await classify(text: text, imageJPEG: image, language: language, categories: categories, accounts: accounts)
             result = r
-            draft = ClassifyTransactionUseCase.draft(from: r, accounts: accounts)
+            draft = ClassifyTransactionUseCase.draft(from: r, accounts: accounts, usage: usage)
             phase = .review
         } catch { phase = .error(error.localizedDescription) }
     }

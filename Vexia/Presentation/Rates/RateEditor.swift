@@ -23,8 +23,9 @@ final class RateEditorViewModel {
     var deviation: Double? { guard let v = value, let d = dayRate, d > 0 else { return nil }; return (v - d) / d * 100 }
     var deviationText: String {
         guard let dev = deviation else { return " " }
-        if abs(dev) < 0.05 { return "Igual a la tasa del día" }
-        return (dev > 0 ? "+" : "−") + Fmt.grouped(abs(dev), decimals: 1) + "% frente a la tasa del día"
+        if abs(dev) < 0.05 { return String(localized: "Igual a la tasa del día") }
+        let sign = dev > 0 ? "+" : "−"
+        return String(localized: "\(sign)\(Fmt.grouped(abs(dev), decimals: 1))% frente a la tasa del día")
     }
     var previewText: String? {
         guard let a = previewAmount, let v = value else { return nil }
@@ -37,10 +38,10 @@ final class RateEditorViewModel {
         let e = await ext ?? nil, s = await stored ?? nil
         dayRate = e ?? s
         var refs: [Reference] = []
-        if let e { refs.append(.init(name: "Del día (fuente externa)", meta: "Consultada ahora", value: e)) }
-        if let s, s != e { refs.append(.init(name: "Guardada por ti", meta: "Usada en tus movimientos", value: s)) }
+        if let e { refs.append(.init(name: String(localized: "Del día (fuente externa)"), meta: String(localized: "Consultada ahora"), value: e)) }
+        if let s, s != e { refs.append(.init(name: String(localized: "Guardada por ti"), meta: String(localized: "Usada en tus movimientos"), value: s)) }
         if let last = RateMemory.lastManual(code), !refs.contains(where: { $0.value == last }) {
-            refs.append(.init(name: "Tu última tasa manual", meta: "Solo esta vez", value: last))
+            refs.append(.init(name: String(localized: "Tu última tasa manual"), meta: String(localized: "Solo esta vez"), value: last))
         }
         references = refs
         if text.isEmpty, let d = dayRate { text = Fmt.editable(d, digits: 0...4) }
@@ -143,7 +144,7 @@ struct RateEditorSheet: View {
                         saving = true
                         Task { await onSaveGlobal(v); saving = false; dismiss() }
                     } label: {
-                        Text(saving ? "Guardando…" : "Guardar como tasa de hoy para todo").font(.headline).frame(maxWidth: .infinity, minHeight: 34)
+                        Text(saving ? String(localized: "Guardando…") : String(localized: "Guardar como tasa de hoy para todo")).font(.headline).frame(maxWidth: .infinity, minHeight: 34)
                     }
                     .buttonStyle(onApplyOnce == nil ? AnyPrimitiveButtonStyle(.glassProminent) : AnyPrimitiveButtonStyle(.glass))
                     .controlSize(.large)

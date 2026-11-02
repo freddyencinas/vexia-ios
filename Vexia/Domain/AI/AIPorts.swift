@@ -55,10 +55,10 @@ nonisolated enum AIError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .notConfigured(let m): "IA no configurada: \(m)"
-        case .emptyTranscript: "No se detectó ningún texto"
-        case .invalidResponse(let m): "Respuesta inválida de la IA: \(m)"
-        case .unavailable(let m): "IA no disponible: \(m)"
+        case .notConfigured(let m): String(localized: "IA no configurada: \(m)")
+        case .emptyTranscript: String(localized: "No se detectó ningún texto")
+        case .invalidResponse(let m): String(localized: "Respuesta inválida de la IA: \(m)")
+        case .unavailable(let m): String(localized: "IA no disponible: \(m)")
         }
     }
 }

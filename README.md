@@ -60,6 +60,13 @@ Tokens live in `Core/Design/Theme.swift` (`VexiaColor`), all light/dark adaptive
 - Backend colors (`Color(hexString:)`) are automatically lightened in dark mode when too dark.
 - Avoid fixed `Color(hex:)` in views except on surfaces that don't change with the mode (brand gradient).
 
+## Localization
+Spanish (development language) and English via a String Catalog (`Vexia/Resources/Localizable.xcstrings`).
+- Spanish literals are the keys: `Text("Gasto")` is localized as-is; strings built outside SwiftUI views use `String(localized:)`.
+- Language = the per-app language in iOS Settings (Ajustes → Idioma opens it). UI, AI prompts, dictation and `Accept-Language` follow it.
+- Money keeps the regional format ("Bs 1.539,00") in both languages; dates and month names follow the app language.
+- A test fails if any catalog key lacks an English translation.
+
 ## Tests
 ```bash
 xcodebuild -project Vexia.xcodeproj -scheme Vexia \
@@ -77,4 +84,4 @@ Google Sign-In (PKCE), bar metrics, adaptive colors (resolved off the main threa
 ## Roadmap
 - Chat WebSocket, complex A2UI widgets (BudgetProposalCard/BudgetSetupCard),
   full budget editing, receipt share extension,
-  English localization (String Catalog) and category name translation.
+  more languages.

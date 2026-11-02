@@ -17,7 +17,7 @@ final class AppleSpeechTranscriber: SpeechTranscriber {
 
     func start(locale: Locale, onPartial: @escaping @MainActor (String) -> Void) async throws {
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
-            throw AIError.unavailable("reconocimiento de voz no disponible")
+            throw AIError.unavailable(String(localized: "reconocimiento de voz no disponible"))
         }
         transcript = ""
         let audio = AVAudioSession.sharedInstance()

@@ -9,7 +9,7 @@ nonisolated enum CategorySearch {
     }
 
     private static func fold(_ s: String) -> String {
-        s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "es"))
+        s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
     }
 }
 
@@ -40,7 +40,7 @@ struct CategoryPickerSheet: View {
         NavigationStack {
             List {
                 if !mine.isEmpty { Section("Mis categorías") { rows(mine) } }
-                if !general.isEmpty { Section(mine.isEmpty ? "" : "Generales") { rows(general) } }
+                if !general.isEmpty { Section(mine.isEmpty ? "" : String(localized: "Generales")) { rows(general) } }
             }
             .overlay {
                 if results.isEmpty { ContentUnavailableView.search(text: query) }

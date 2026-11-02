@@ -3,6 +3,8 @@ import Foundation
 /// Validates and persists a transaction draft.
 struct SaveTransactionUseCase {
     let repo: TransactionsRepository
+    /// New transactions feed the "most used" defaults of the next form.
+    var usage: UsageStatsUseCase? = nil
 
     func validate(_ d: TransactionDraft) throws {
         guard d.amount > 0 else { throw ValidationError.invalidAmount }
@@ -30,11 +32,14 @@ struct SaveTransactionUseCase {
         try validate(d)
         if let editingId { return .transaction(try await repo.update(id: editingId, d)) }
         if d.type == .transfer && !d.isCurrencyExchange {
-            if d.description.isEmpty { d.description = "Traspaso" }
+            if d.description.isEmpty { d.description = String(localized: "Traspaso") }
             try await repo.createTransfer(d)
+            usage?.record(d)
             return .transfer
         }
-        return .transaction(try await repo.create(d))
+        let created = try await repo.create(d)
+        usage?.record(d)
+        return .transaction(created)
     }
 }
 

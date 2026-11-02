@@ -102,7 +102,7 @@ struct AgentWidgetView: View {
         let p = spec.props
         switch spec.type {
         case "ActionButton":
-            Button(p["label"].string ?? "Acción") { onInteract(spec, ["action": p["action"]]) }
+            Button(p["label"].string ?? String(localized: "Acción")) { onInteract(spec, ["action": p["action"]]) }
                 .buttonStyle(.glassProminent).disabled(spec.interactionId == nil)
         case "BudgetItemCard", "SavingsProgressBar", "CategoryBudgetSlider", "InvestmentTargetCard":
             let current = p.first("current", "currentAmount", "value").doubleValue

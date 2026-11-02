@@ -46,24 +46,26 @@ final class RatesViewModel {
     func save(_ code: String, _ v: Double) async {
         do {
             try await catalog.saveUSDRate(code: code, rate: v, date: .now)
-            message = "Tasa \(code) guardada: \(Fmt.grouped(v))"
+            message = String(localized: "Tasa \(code) guardada: \(Fmt.grouped(v))")
             await load()
         } catch { message = error.localizedDescription }
     }
 
     static func name(_ code: String) -> String {
-        ["BOB": "Boliviano", "VES": "Bolívar", "EUR": "Euro", "ARS": "Peso argentino", "CLP": "Peso chileno",
-         "COP": "Peso colombiano", "MXN": "Peso mexicano", "PEN": "Sol peruano", "BRL": "Real brasileño", "GBP": "Libra esterlina"][code]
-            ?? Locale(identifier: "es").localizedString(forCurrencyCode: code)?.capitalized ?? code
+        ["BOB": String(localized: "Boliviano"), "VES": String(localized: "Bolívar"), "EUR": String(localized: "Euro"),
+         "ARS": String(localized: "Peso argentino"), "CLP": String(localized: "Peso chileno"),
+         "COP": String(localized: "Peso colombiano"), "MXN": String(localized: "Peso mexicano"), "PEN": String(localized: "Sol peruano"),
+         "BRL": String(localized: "Real brasileño"), "GBP": String(localized: "Libra esterlina")][code]
+            ?? Locale.current.localizedString(forCurrencyCode: code)?.capitalized ?? code
     }
 
     static func sourceText(_ q: RateQuote?) -> String {
         switch q?.source {
-        case .database, .saved: "Guardada por ti"
-        case .external: "Fuente externa"
-        case .manual: "Manual"
-        case .snapshot: "Registrada en el movimiento"
-        case nil: "Sin tasa"
+        case .database, .saved: String(localized: "Guardada por ti")
+        case .external: String(localized: "Fuente externa")
+        case .manual: String(localized: "Manual")
+        case .snapshot: String(localized: "Registrada en el movimiento")
+        case nil: String(localized: "Sin tasa")
         }
     }
 }
@@ -76,7 +78,8 @@ struct RatesView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
-                Text("Cuánto vale 1 dólar en tus monedas" + (vm.updatedAt.map { " · actualizado \(Fmt.time($0))" } ?? ""))
+                Text(vm.updatedAt.map { String(localized: "Cuánto vale 1 dólar en tus monedas · actualizado \(Fmt.time($0))") }
+                     ?? String(localized: "Cuánto vale 1 dólar en tus monedas"))
                     .font(.footnote).foregroundStyle(VexiaColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if vm.rows.isEmpty && vm.isLoading {
@@ -145,7 +148,7 @@ struct RatesView: View {
         .background(.background, in: .rect(cornerRadius: 20))
     }
 
-    private func pill(_ t: String, _ v: Double) -> some View {
+    private func pill(_ t: LocalizedStringKey, _ v: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(t).font(.caption2).foregroundStyle(VexiaColor.textSecondary)
             Text(Fmt.grouped(v)).font(.subheadline.weight(.semibold).monospacedDigit())

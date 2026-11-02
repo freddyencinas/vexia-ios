@@ -29,10 +29,10 @@ final class LoginViewModel {
 
     func forgotPassword() async {
         let email = email.trimmingCharacters(in: .whitespaces).lowercased()
-        guard Validators.email(email) else { errorMessage = "Escribe tu correo arriba para enviarte el enlace"; return }
+        guard Validators.email(email) else { errorMessage = String(localized: "Escribe tu correo arriba para enviarte el enlace"); return }
         do {
             try await auth?.forgotPassword(email: email)
-            resetMessage = "Si \(email) tiene una cuenta, te enviamos un enlace para cambiar la contraseña."
+            resetMessage = String(localized: "Si \(email) tiene una cuenta, te enviamos un enlace para cambiar la contraseña.")
         } catch { errorMessage = error.localizedDescription }
     }
 
@@ -86,12 +86,12 @@ final class LockViewModel {
     func authenticate() async -> Bool {
         guard !isAuthenticating else { return false }
         isAuthenticating = true; defer { isAuthenticating = false }
-        return await biometrics.authenticate(reason: "Desbloquea Vexia")
+        return await biometrics.authenticate(reason: String(localized: "Desbloquea Vexia"))
     }
 
     func verifyPIN() -> Bool {
         if settings.verifyPIN(pin) { return true }
-        errorMessage = "PIN incorrecto"; pin = ""
+        errorMessage = String(localized: "PIN incorrecto"); pin = ""
         return false
     }
 }

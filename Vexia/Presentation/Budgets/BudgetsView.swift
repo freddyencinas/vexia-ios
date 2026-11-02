@@ -5,15 +5,15 @@ struct BudgetsHubView: View {
     var month: DashboardViewModel.MonthTotals?
     var openAssistant: (String?) -> Void
 
-    private struct Template: Identifiable { let id: String; let desc: String; let slices: [(Color, Double)]; let prompt: String }
+    private struct Template: Identifiable { let id: String; let title: String; let desc: String; let slices: [(Color, Double)]; let prompt: String }
     private let templates: [Template] = [
-        .init(id: "50/30/20", desc: "Necesidades 50% · Gustos 30% · Ahorro 20%",
+        .init(id: "50/30/20", title: "50/30/20", desc: String(localized: "Necesidades 50% · Gustos 30% · Ahorro 20%"),
               slices: [(VexiaColor.brandBlue, 0.5), (VexiaColor.brandGreen, 0.3), (VexiaColor.warning, 0.2)],
               prompt: "Crea un presupuesto mensual 50/30/20 con mis ingresos y gastos reales"),
-        .init(id: "Ahorro primero", desc: "Separa el 30% al cobrar y gasta el resto",
+        .init(id: "savings-first", title: String(localized: "Ahorro primero"), desc: String(localized: "Separa el 30% al cobrar y gasta el resto"),
               slices: [(VexiaColor.brandGreen, 0.3), (VexiaColor.blueMuted, 0.7)],
               prompt: "Crea un presupuesto que separe primero el 30% de mis ingresos para ahorro"),
-        .init(id: "Por categoría", desc: "Pon un tope a cada gasto, como Alimentación o Transporte",
+        .init(id: "by-category", title: String(localized: "Por categoría"), desc: String(localized: "Pon un tope a cada gasto, como Alimentación o Transporte"),
               slices: [(VexiaColor.brandBlue, 0.25), (VexiaColor.brandGreen, 0.2), (VexiaColor.warning, 0.25), (Color(hex: 0xB0306A), 0.3)],
               prompt: "Crea un presupuesto con un tope por categoría según mis gastos de los últimos meses"),
     ]
@@ -22,10 +22,10 @@ struct BudgetsHubView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(month == nil ? "PLANIFICA CON IA" : "CON TUS DATOS DE \(month!.label.uppercased())")
+                    Text(month == nil ? String(localized: "PLANIFICA CON IA") : String(localized: "CON TUS DATOS DE \(month!.label.uppercased())"))
                         .font(.caption.weight(.semibold)).foregroundStyle(Color(hex: 0xCDEFE2))
-                    Text(month.map { "En \($0.label.lowercased()) llevas \(Fmt.money($0.expenses, currency: $0.currency)) en gastos. Vexia puede armar tu presupuesto en un minuto." }
-                         ?? "Vexia analiza tus movimientos y te propone un presupuesto.")
+                    Text(month.map { String(localized: "En \($0.label.lowercased()) llevas \(Fmt.money($0.expenses, currency: $0.currency)) en gastos. Vexia puede armar tu presupuesto en un minuto.") }
+                         ?? String(localized: "Vexia analiza tus movimientos y te propone un presupuesto."))
                         .font(.title3.weight(.bold)).foregroundStyle(.white)
                     Button("Crear con Vexia") { openAssistant("Ayúdame a crear un presupuesto mensual con mis gastos reales") }
                         .font(.subheadline.weight(.bold))
@@ -47,7 +47,7 @@ struct BudgetsHubView: View {
                                 HStack(spacing: 12) {
                                     DonutSlices(slices: t.slices).frame(width: 44, height: 44)
                                     VStack(alignment: .leading, spacing: 3) {
-                                        Text(t.id).font(.body.weight(.semibold)).foregroundStyle(.primary)
+                                        Text(t.title).font(.body.weight(.semibold)).foregroundStyle(.primary)
                                         Text(t.desc).font(.footnote).foregroundStyle(VexiaColor.textSecondary)
                                     }
                                     Spacer()
@@ -135,7 +135,7 @@ struct BudgetProgressView: View {
                     ForEach(vm.snapshots) { s in
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(s.periodStart.map(Fmt.monthYear) ?? "Snapshot").font(.subheadline.weight(.medium))
+                                Text(s.periodStart.map(Fmt.monthYear) ?? String(localized: "Snapshot")).font(.subheadline.weight(.medium))
                                 Text("Real \(Fmt.money(s.totalActual, currency: p.currencyCode)) / Meta \(Fmt.money(s.totalTarget, currency: p.currencyCode))")
                                     .font(.caption).foregroundStyle(.secondary)
                             }
@@ -171,7 +171,7 @@ struct BudgetProgressView: View {
                     Text("de \(Fmt.money(p.totalTarget, currency: p.currencyCode))").font(.subheadline).foregroundStyle(.white.opacity(0.8))
                 }
                 Spacer()
-                Gauge(value: min(p.complianceRate, 100), in: 0...100) { Text("") } currentValueLabel: {
+                Gauge(value: min(p.complianceRate, 100), in: 0...100) { Text(verbatim: "") } currentValueLabel: {
                     Text(Fmt.percent(p.complianceRate)).font(.caption.bold())
                 }
                 .gaugeStyle(.accessoryCircularCapacity).tint(.white).scaleEffect(1.3)

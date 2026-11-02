@@ -16,10 +16,8 @@ final class LocalSettingsRepository: SettingsRepository {
         get { defaults.string(forKey: "theme_mode") ?? "system" }
         set { defaults.set(newValue, forKey: "theme_mode") }
     }
-    var language: String {
-        get { defaults.string(forKey: "app_language") ?? (Locale.current.language.languageCode?.identifier == "en" ? "en" : "es") }
-        set { defaults.set(newValue, forKey: "app_language") }
-    }
+    /// UI, AI prompts, dictation and Accept-Language all follow the per-app language from iOS Settings.
+    var language: String { Bundle.main.preferredLocalizations.first == "en" ? "en" : "es" }
     var hasPIN: Bool { secure.string(for: "app_pin_hash") != nil }
 
     func setPIN(_ pin: String?) {
@@ -45,9 +43,23 @@ final class DeviceBiometricAuthenticator: BiometricAuthenticator {
     var isAvailable: Bool { LAContext().canEvaluatePolicy(.deviceOwnerAuthentication, error: nil) }
     var biometryName: String {
         let c = LAContext(); _ = c.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-        switch c.biometryType { case .faceID: return "Face ID"; case .touchID: return "Touch ID"; case .opticID: return "Optic ID"; default: return "código" }
+        switch c.biometryType { case .faceID: return "Face ID"; case .touchID: return "Touch ID"; case .opticID: return "Optic ID"; default: return String(localized: "código") }
     }
     func authenticate(reason: String) async -> Bool {
         (try? await LAContext().evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)) ?? false
+    }
+}
+
+/// Usage stats cached as JSON in UserDefaults (non-sensitive: ids and counts only).
+final class UserDefaultsUsageStatsStore: UsageStatsStore, @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let key = "usage_stats_v1"
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
+
+    func load() -> UsageStats? {
+        defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(UsageStats.self, from: $0) }
+    }
+    func save(_ stats: UsageStats) {
+        if let data = try? JSONEncoder().encode(stats) { defaults.set(data, forKey: key) }
     }
 }
