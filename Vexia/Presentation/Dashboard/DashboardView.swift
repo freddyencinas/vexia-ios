@@ -5,6 +5,7 @@ struct DashboardView: View {
     @State var vm: DashboardViewModel
     let container: AppContainer
     var openAssistant: (String?) -> Void
+    // Pending: Inicio → Presupuestos shortcut (wired by MainTabView, no button yet).
     var openBudgets: () -> Void
     @Environment(SessionViewModel.self) private var session
 
@@ -263,6 +264,7 @@ struct CashFlowCard: View {
 struct SpendingCard: View {
     let spending: SpendingAnalysis
     let currency: String
+    // periphery:ignore - pending: tap a chart slice to highlight its category
     @State private var selected: Double?
 
     private var top: [SpendingAnalysis.Category] { Array(spending.categories.sorted { $0.amount > $1.amount }.prefix(6)) }

@@ -15,14 +15,15 @@ final class AppleSpeechTranscriber: SpeechTranscriber {
         return speech && mic
     }
 
-    func start(locale: Locale, onPartial: @escaping @MainActor (String) -> Void) throws {
+    func start(locale: Locale, onPartial: @escaping @MainActor (String) -> Void) async throws {
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
             throw AIError.unavailable("reconocimiento de voz no disponible")
         }
         transcript = ""
         let audio = AVAudioSession.sharedInstance()
         try audio.setCategory(.record, mode: .measurement, options: .duckOthers)
-        try audio.setActive(true, options: .notifyOthersOnDeactivation)
+        // Async activation: the sync setActive blocks the main thread (AVAudioSession warns about it).
+        _ = try await audio.activate(options: [])
 
         let req = SFSpeechAudioBufferRecognitionRequest()
         req.shouldReportPartialResults = true
@@ -69,7 +70,7 @@ final class AppleSpeechTranscriber: SpeechTranscriber {
         try? await Task.sleep(for: .milliseconds(350)) // let the final result arrive
         task?.cancel()
         task = nil; request = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        _ = try? await AVAudioSession.sharedInstance().deactivate(options: .notifyOthersOnDeactivation)
         return transcript
     }
 }

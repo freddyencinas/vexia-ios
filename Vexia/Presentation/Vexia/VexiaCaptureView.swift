@@ -23,6 +23,7 @@ struct VexiaCaptureView: View {
                 if case .error(let m) = vm.phase {
                     Label(m, systemImage: "exclamationmark.triangle").foregroundStyle(VexiaColor.error)
                         .multilineTextAlignment(.center).padding(.horizontal)
+                        .fixedSize(horizontal: false, vertical: true) // short sheet detent was truncating the reason
                 }
                 Spacer()
                 controls

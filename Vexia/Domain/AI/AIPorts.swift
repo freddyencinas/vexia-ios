@@ -16,7 +16,7 @@ protocol LLMProvider: Sendable {
 /// Speech-to-text port. Streams partial transcripts; `stop()` returns the final text.
 protocol SpeechTranscriber: AnyObject {
     func requestAuthorization() async -> Bool
-    func start(locale: Locale, onPartial: @escaping @MainActor (String) -> Void) throws
+    func start(locale: Locale, onPartial: @escaping @MainActor (String) -> Void) async throws
     func stop() async -> String
 }
 

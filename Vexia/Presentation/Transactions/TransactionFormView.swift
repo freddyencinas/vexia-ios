@@ -5,8 +5,11 @@ struct TransactionFormView: View {
     @State var vm: TransactionFormViewModel
     var onSaved: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(SavedBannerCenter.self) private var savedBanner: SavedBannerCenter?
     @FocusState private var focus: Field?
     @State private var showDatePicker = false
+    @State private var showCategoryPicker = false
+    // periphery:ignore - pending: collapsible "more options" section
     @State private var showMoreOptions = false
     enum Field { case amount, toAmount, rate, note }
 
@@ -39,6 +42,9 @@ struct TransactionFormView: View {
             .task {
                 await vm.loadCatalog()
                 if !vm.isEditing && vm.amountText.isEmpty { focus = .amount }
+            }
+            .sheet(isPresented: $showCategoryPicker) {
+                CategoryPickerSheet(categories: vm.filteredCategories, selection: $vm.draft.categoryId)
             }
             .sheet(item: $vm.rateEditRequest) { req in
                 RateEditorSheet(vm: RateEditorViewModel(code: req.code, current: vm.rate(for: req.code), previewAmount: req.preview, catalog: vm.catalogRepository),
@@ -206,7 +212,7 @@ struct TransactionFormView: View {
                 Spacer()
             }
             Picker("Tasa a usar", selection: Binding(get: { vm.usesDayFXRate }, set: { if $0 { vm.useDayFXRate() } else { focus = .rate } })) {
-                Text(vm.dayCrossRate.map { "Del día · \(Fmt.grouped(dayDisplay($0, from: from, to: to)))" } ?? "Del día").tag(true)
+                Text(vm.dayCrossRate.map { "Del día · \(Fmt.grouped(dayDisplay($0, to: to)))" } ?? "Del día").tag(true)
                 Text("La que me dieron").tag(false)
             }
             .pickerStyle(.segmented)
@@ -229,7 +235,7 @@ struct TransactionFormView: View {
         .background(.background, in: .rect(cornerRadius: 20))
     }
 
-    private func dayDisplay(_ r: Double, from: String, to: String) -> Double { to == "USD" && r > 0 ? 1 / r : r }
+    private func dayDisplay(_ r: Double, to: String) -> Double { to == "USD" && r > 0 ? 1 / r : r }
 
     private var categoryGrid: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -256,18 +262,16 @@ struct TransactionFormView: View {
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(on ? .isSelected : [])
                 }
-                Menu {
-                    Picker("Categoría", selection: $vm.draft.categoryId) {
-                        ForEach(vm.filteredCategories) { Text($0.name).tag(Optional($0.id)) }
-                    }
-                } label: {
+                Button { showCategoryPicker = true } label: {
                     VStack(spacing: 4) {
-                        Image(systemName: "ellipsis").font(.title3).foregroundStyle(VexiaColor.textSecondary)
+                        Image(systemName: "magnifyingglass").font(.title3).foregroundStyle(VexiaColor.textSecondary)
                         Text("Más").font(.caption2.weight(.semibold)).foregroundStyle(.primary)
                     }
                     .frame(maxWidth: .infinity, minHeight: 66)
                     .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 14))
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Buscar categoría")
             }
         }
         .padding(12)
@@ -354,7 +358,7 @@ struct TransactionFormView: View {
 
     private var cta: some View {
         Button {
-            Task { if await vm.submit() { onSaved(); dismiss() } }
+            Task { if await vm.submit() { savedBanner?.announce(vm.savedSummary); onSaved(); dismiss() } }
         } label: {
             HStack {
                 if vm.isSaving { ProgressView().tint(.white) }

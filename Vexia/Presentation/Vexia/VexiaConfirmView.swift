@@ -55,7 +55,11 @@ struct VexiaConfirmView: View {
     var onSaved: () -> Void
     var onEditAll: (TransactionDraft) -> Void
     var onRetry: () -> Void
+    @State private var showCategoryPicker = false
+    @State private var showNoteEditor = false
+    @State private var noteText = ""
     @Environment(\.dismiss) private var dismiss
+    @Environment(SavedBannerCenter.self) private var savedBanner: SavedBannerCenter?
 
     var body: some View {
         NavigationStack {
@@ -86,6 +90,14 @@ struct VexiaConfirmView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cerrar", systemImage: "xmark") { dismiss() } } }
             .task { await vm.load() }
+            .alert("Nota", isPresented: $showNoteEditor) {
+                TextField("Descripción", text: $noteText)
+                Button("Cancelar", role: .cancel) {}
+                Button("Guardar") { vm.draft.description = noteText.trimmingCharacters(in: .whitespacesAndNewlines) }
+            }
+            .sheet(isPresented: $showCategoryPicker) {
+                CategoryPickerSheet(categories: vm.typeCategories, selection: $vm.draft.categoryId)
+            }
             .errorAlert($vm.errorMessage)
         }
         .presentationDetents([.height(660), .large])
@@ -101,11 +113,11 @@ struct VexiaConfirmView: View {
             }
             Text(vm.amountText).font(.system(size: 40, weight: .bold, design: .rounded)).monospacedDigit()
             FlowChips {
-                Menu {
-                    Picker("Categoría", selection: $vm.draft.categoryId) {
-                        ForEach(vm.typeCategories) { Text($0.name).tag(Optional($0.id)) }
-                    }
-                } label: { chip("Categoría", vm.category?.name ?? "Elegir", warn: vm.category == nil && vm.draft.type != .transfer) }
+                Button { showCategoryPicker = true } label: {
+                    chip("Categoría", vm.category.map { c in [CategorySymbol.emoji(c.icon), c.name].compactMap { $0 }.joined(separator: " ") } ?? "Elegir",
+                         warn: vm.category == nil && vm.draft.type != .transfer)
+                }
+                .buttonStyle(.plain)
                 Menu {
                     Picker("Cuenta", selection: $vm.draft.accountId) {
                         ForEach(vm.accounts) { Text("\($0.name) · \($0.code)").tag(Optional($0.id)) }
@@ -115,7 +127,11 @@ struct VexiaConfirmView: View {
                     Button("Hoy") { vm.draft.date = .now }
                     Button("Ayer") { vm.draft.date = Calendar.current.date(byAdding: .day, value: -1, to: .now)! }
                 } label: { chip("Fecha", Calendar.current.isDateInToday(vm.draft.date) ? "Hoy" : Fmt.shortDate(vm.draft.date), warn: false) }
-                if !vm.draft.description.isEmpty { chip("Nota", vm.draft.description, warn: false) }
+                Button {
+                    noteText = vm.draft.description
+                    showNoteEditor = true
+                } label: { chip("Nota", vm.draft.description.isEmpty ? "Agregar" : vm.draft.description, warn: false) }
+                .buttonStyle(.plain)
             }
             .onChange(of: vm.draft.accountId) { vm.syncCurrency() }
         }
@@ -138,7 +154,13 @@ struct VexiaConfirmView: View {
     private var actions: some View {
         VStack(spacing: 8) {
             Button {
-                Task { if await vm.confirm() { onSaved(); dismiss() } }
+                Task {
+                    if await vm.confirm() {
+                        savedBanner?.announce(SavedBanner.summary(type: vm.draft.type, isEditing: false, isExchange: false,
+                                                          amount: vm.amountText, account: vm.account?.name))
+                        onSaved(); dismiss()
+                    }
+                }
             } label: {
                 Text(vm.missing.isEmpty ? "Confirmar \(vm.draft.type.title.lowercased())" : "Falta: \(vm.missing.joined(separator: ", "))")
                     .font(.headline).frame(maxWidth: .infinity, minHeight: 34)

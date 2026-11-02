@@ -108,8 +108,6 @@ nonisolated extension JSON: ExpressibleByStringLiteral, ExpressibleByFloatLitera
 nonisolated extension JSON {
     nonisolated static func from(_ s: String?) -> JSON { s.map(JSON.string) ?? .null }
     nonisolated static func from(_ d: Double?) -> JSON { d.map(JSON.number) ?? .null }
-    nonisolated static func from(_ b: Bool?) -> JSON { b.map(JSON.bool) ?? .null }
-    nonisolated static func from(_ i: Int?) -> JSON { i.map { .number(Double($0)) } ?? .null }
 
     /// Object literal that drops null values.
     nonisolated static func compact(_ pairs: [String: JSON]) -> JSON { .object(pairs.filter { !$0.value.isNull }) }

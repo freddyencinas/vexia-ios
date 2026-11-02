@@ -120,7 +120,7 @@ struct TransactionsView: View {
                 } label: { chipLabel(vm.accounts.first { $0.id == vm.filter.accountId }?.name ?? "Cuenta", vm.filter.accountId != nil, menu: true) }
                 Menu {
                     Button("Todas las categorías") { vm.filter.categoryId = nil }
-                    ForEach(vm.categories.filter { $0.type == "expense" || $0.type == "income" }) { c in Button(c.name) { vm.filter.categoryId = c.id } }
+                    ForEach(vm.categories.filter { $0.type == "expense" || $0.type == "income" }) { c in Button([CategorySymbol.emoji(c.icon), c.name].compactMap { $0 }.joined(separator: " ")) { vm.filter.categoryId = c.id } }
                 } label: { chipLabel(vm.categories.first { $0.id == vm.filter.categoryId }?.name ?? "Categoría", vm.filter.categoryId != nil, menu: true) }
             }
             .padding(.vertical, 2)

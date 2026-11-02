@@ -14,12 +14,8 @@ enum VexiaColor {
     static let error = Color(light: 0xEF4444, dark: 0xF87171)
     static let warning = Color(light: 0xF59E0B, dark: 0xFBBF24)
     static let info = Color(light: 0x3B82F6, dark: 0x60A5FA)
-    static let chartBlue = Color(light: 0x3B82F6, dark: 0x60A5FA)
-    static let chartGreen = Color(light: 0x10B981, dark: 0x34D399)
-    static let chartOrange = Color(light: 0xF97316, dark: 0xFB923C)
 
     static let income = success
-    static let expense = error
 
     // Text-safe variants (≥4.5:1 on white/#F2F2F7 in light, on #000/#1C1C1E in dark) — design review finding.
     static let textSecondary = Color(light: 0x4B5563, dark: 0x9CA3AF)
@@ -122,21 +118,6 @@ extension Color {
     }
 }
 
-/// Rounded card container using the iOS 26/27 Liquid Glass material.
-struct GlassCard<Content: View>: View {
-    var padding: CGFloat = 16
-    var tint: Color? = nil
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        content
-            .padding(padding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glassEffect(tint.map { .regular.tint($0.opacity(0.25)) } ?? .regular,
-                         in: .rect(cornerRadius: 24))
-    }
-}
-
 /// Plain grouped card (used inside scroll views where glass-on-glass would hurt legibility).
 struct SurfaceCard<Content: View>: View {
     var padding: CGFloat = 16
@@ -161,31 +142,6 @@ struct SectionHeader: View {
         }
     }
 }
-
-/// Generic loading/error/content switcher for ViewModel states.
-struct LoadableView<Value, Content: View>: View {
-    let state: Loadable<Value>
-    var retry: (() -> Void)? = nil
-    @ViewBuilder var content: (Value) -> Content
-
-    var body: some View {
-        switch state {
-        case .idle, .loading:
-            ProgressView().frame(maxWidth: .infinity, minHeight: 120)
-        case .failed(let message):
-            ContentUnavailableView {
-                Label("Algo salió mal", systemImage: "exclamationmark.triangle")
-            } description: {
-                Text(message)
-            } actions: {
-                if let retry { Button("Reintentar", action: retry).buttonStyle(.glass) }
-            }
-        case .loaded(let value):
-            content(value)
-        }
-    }
-}
-
 
 /// Layout helpers shared by progress bars.
 nonisolated enum BarMetrics {

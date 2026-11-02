@@ -24,8 +24,6 @@ final class SessionViewModel {
         }
     }
 
-    var settings: SettingsRepository { container.settings }
-
     func start() async {
         switch await container.restoreSession() {
         case .authenticated(let u): user = u; state = .authenticated
@@ -59,6 +57,7 @@ final class SessionViewModel {
         }
     }
 
+    // periphery:ignore - pending: reload profile after editing it
     func refreshUser() async {
         if let u = try? await container.auth.currentUser() { user = u }
     }

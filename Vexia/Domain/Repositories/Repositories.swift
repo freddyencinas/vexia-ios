@@ -28,6 +28,7 @@ protocol TransactionsRepository: AnyObject, Sendable {
 
 protocol CatalogRepository: AnyObject, Sendable {
     func categories(type: String?) async throws -> [FinancialCategory]
+    // periphery:ignore - pending: user-defined categories
     func createCategory(name: String, icon: String, type: String) async throws
     func accounts() async throws -> [Account]
     func accountBalances() async throws -> [Account]

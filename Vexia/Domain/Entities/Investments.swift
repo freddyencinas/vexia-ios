@@ -30,8 +30,6 @@ nonisolated struct StockPosition: Identifiable, Hashable, Sendable {
     var currentValue: Double?
     var sector: String?
     var operationCount: Int
-    var gain: Double { (currentValue ?? totalInvested) - totalInvested }
-    var gainPercent: Double { totalInvested == 0 ? 0 : gain / totalInvested * 100 }
 }
 
 nonisolated struct AssetPnL: Identifiable, Hashable, Sendable {

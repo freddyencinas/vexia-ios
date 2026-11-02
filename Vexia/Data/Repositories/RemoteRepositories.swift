@@ -92,6 +92,16 @@ final class RemoteCatalogRepository: CatalogRepository {
     init(http: HTTPClient) { self.http = http }
 
     func categories(type: String?) async throws -> [FinancialCategory] {
+        if let type { return try await fetchCategories(type: type) }
+        // The endpoint caps at 50 (no paging params) and "all" also returns currency/sector/exchange
+        // categories, so user categories late in the alphabet were cut off. Fetch only what forms use.
+        async let expense = fetchCategories(type: "expense")
+        async let income = fetchCategories(type: "income")
+        var seen = Set<String>()
+        return try await (expense + income).filter { seen.insert($0.id).inserted }
+    }
+
+    private func fetchCategories(type: String) async throws -> [FinancialCategory] {
         let res = try await http.get("/user/categories", query: ["includeGlobal": "true", "includeUser": "true", "onlyActive": "true", "type": type])
         return res["data"]["categories"].array.map(Mappers.category)
     }

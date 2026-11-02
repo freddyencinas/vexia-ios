@@ -148,6 +148,56 @@ struct InitialsAvatar: View {
     }
 }
 
+/// App-wide "saved" banner state, injected by `MainTabView`. A reference type keeps the environment
+/// value stable (a stored closure would invalidate every reader on each update).
+@Observable final class SavedBannerCenter {
+    var message: String?
+    func announce(_ message: String) { self.message = message }
+}
+
+/// Transient confirmation after a save. Forms dismiss on success, so without it nothing tells the
+/// user the data was stored.
+struct SavedBanner: ViewModifier {
+    @Bindable var center: SavedBannerCenter
+
+    static func summary(type: TransactionType, isEditing: Bool, isExchange: Bool, amount: String, account: String?) -> String {
+        let what: String = if isEditing { "Cambios guardados" } else {
+            switch type {
+            case .expense: "Gasto guardado"
+            case .income: "Ingreso guardado"
+            case .transfer: isExchange ? "Cambio registrado" : "Transferencia registrada"
+            }
+        }
+        return ([what, amount] + [account].compactMap { $0 }).joined(separator: " · ")
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if let message = center.message {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(VexiaColor.incomeText)
+                        Text(message).lineLimit(2)
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .glassEffect(.regular, in: .capsule)
+                    .padding(.horizontal).padding(.top, 4)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onTapGesture { center.message = nil }
+                }
+            }
+            .animation(.snappy, value: center.message)
+            .sensoryFeedback(.success, trigger: center.message) { _, new in new != nil }
+            .task(id: center.message) {
+                guard let message = center.message else { return }
+                AccessibilityNotification.Announcement(message).post()
+                try? await Task.sleep(for: .seconds(3))
+                if center.message == message { center.message = nil }
+            }
+    }
+}
+
 extension View {
     /// Standard alert for ViewModel error strings.
     func errorAlert(_ message: Binding<String?>) -> some View {

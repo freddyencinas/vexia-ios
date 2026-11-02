@@ -25,7 +25,7 @@ final class CloudflareLLMProvider: LLMProvider {
     }
 
     private func request(_ body: JSON) async throws -> String {
-        guard let key = apiKey(), !key.isEmpty else { throw AIError.notConfigured("falta la API key del LLM (Ajustes → IA)") }
+        guard let key = apiKey(), !key.isEmpty else { throw AIError.notConfigured("agrega la API key en Ajustes → Inteligencia artificial") }
         var req = URLRequest(url: URL(string: AppConfig.llmBaseURL + "/chat/direct-question")!, timeoutInterval: 30)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -70,7 +70,14 @@ final class AppleFoundationModelsProvider: LLMProvider {
         #if canImport(FoundationModels)
         guard Self.isAvailable else { throw AIError.unavailable("Apple Intelligence no está disponible en este dispositivo") }
         let session = LanguageModelSession(instructions: system)
-        return try await session.respond(to: prompt).content
+        do { return try await session.respond(to: prompt).content }
+        catch {
+            #if DEBUG
+            print("[AI] apple-foundation-models failed: \(error)")
+            #endif
+            // Framework errors surface as the generic "operation couldn't be completed" text.
+            throw AIError.unavailable("el modelo de Apple en el dispositivo no pudo procesar la solicitud")
+        }
         #else
         throw AIError.unavailable("Foundation Models no disponible")
         #endif
@@ -94,10 +101,21 @@ final class FallbackLLMProvider: LLMProvider {
         try await first { try await $0.infer(prompt: prompt, system: system, imageJPEG: imageJPEG) }
     }
     private func first(_ op: (LLMProvider) async throws -> String) async throws -> String {
-        var lastError: Error = AIError.unavailable("sin proveedores")
+        var errors: [Error] = []
         for p in providers {
-            do { return try await op(p) } catch { lastError = error }
+            do { return try await op(p) } catch {
+                #if DEBUG
+                print("[AI] \(p.id) failed: \(error)")
+                #endif
+                errors.append(error)
+            }
         }
-        throw lastError
+        throw Self.mostActionable(errors)
+    }
+
+    /// A missing API key is fixable by the user; a later fallback's failure would hide it.
+    nonisolated static func mostActionable(_ errors: [Error]) -> Error {
+        errors.first { if case .notConfigured? = $0 as? AIError { true } else { false } }
+            ?? errors.last ?? AIError.unavailable("sin proveedores")
     }
 }

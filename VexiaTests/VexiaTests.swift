@@ -111,6 +111,63 @@ struct UseCaseTests {
         #expect(llm.lastPrompt == ClassifyTransactionUseCase.receiptPrompt)
     }
 
+    @Test func silenceAutoStopDoesNotCancelClassification() async throws {
+        final class FakeTranscriber: SpeechTranscriber {
+            func requestAuthorization() async -> Bool { true }
+            func start(locale: Locale, onPartial: @escaping @MainActor (String) -> Void) async throws {
+                Task { @MainActor in onPartial("gasté 50 bs en almuerzo") }
+            }
+            func stop() async -> String { "gasté 50 bs en almuerzo" }
+        }
+        /// Mirrors on-device models: a cancelled caller task makes inference throw.
+        final class CancellationAwareLLM: LLMProvider {
+            let id = "cancel-aware"
+            func infer(prompt: String, system: String) async throws -> String {
+                try Task.checkCancellation()
+                return #"{"intent":"expense","form_prefill":{"type":"expense","amount":{"value":50}}}"#
+            }
+            func infer(prompt: String, system: String, imageJPEG: Data) async throws -> String { "{}" }
+        }
+        let vm = VexiaCaptureViewModel(classify: ClassifyTransactionUseCase(llm: CancellationAwareLLM(), prompts: MockPrompts()),
+                                       catalog: MockCatalog(), transcriber: FakeTranscriber(), language: "es")
+        await vm.startListening()
+        for _ in 0..<50 where vm.phase != .review { try await Task.sleep(for: .milliseconds(100)) }
+        #expect(vm.phase == .review)
+        #expect(vm.draft?.amount == 50)
+    }
+
+    @Test func categoriesFetchedPerTypeSoUserOnesAreNotCut() async throws {
+        final class FakeHTTP: HTTPClient, @unchecked Sendable {
+            var types: [String?] = []
+            func send(_ method: HTTPMethod, _ path: String, query: [String: String?], body: JSON?, absoluteURL: URL?, timeout: TimeInterval?) async throws -> JSON {
+                let type = query["type"] ?? nil
+                types.append(type)
+                let cats = type == "expense"
+                    ? #"[{"id":"g1","code":"FOOD","name":"Food","type":"expense","isGlobal":true},{"id":"u1","code":"SNACK","name":"Snack","type":"expense","isGlobal":false}]"#
+                    : #"[{"id":"g2","code":"SALARY","name":"Salary","type":"income","isGlobal":true}]"#
+                return try JSON.parse(Data(#"{"data":{"categories":\#(cats)}}"#.utf8))
+            }
+        }
+        let http = FakeHTTP()
+        let cats = try await RemoteCatalogRepository(http: http).categories(type: nil)
+        #expect(Set(http.types.compactMap { $0 }) == ["expense", "income"]) // never the capped "all" list
+        #expect(cats.map(\.name).contains("Snack"))
+        #expect(cats.count == 3)
+    }
+
+    @Test func categorySearchIgnoresAccentsAndCase() {
+        let cats = [
+            FinancialCategory(id: "1", code: "COFFEE", name: "Café", icon: "☕", type: "expense", isGlobal: true),
+            FinancialCategory(id: "2", code: "SNACK", name: "Snack", icon: "🍿", type: "expense", isGlobal: false),
+            FinancialCategory(id: "3", code: "REFRESH", name: "Refrigerios", icon: "🥤", type: "expense", isGlobal: false),
+        ]
+        #expect(CategorySearch.filter(cats, query: "cafe").map(\.id) == ["1"])
+        #expect(CategorySearch.filter(cats, query: "  SNA ").map(\.id) == ["2"])
+        #expect(CategorySearch.filter(cats, query: "coffee").map(\.id) == ["1"]) // matches code too
+        #expect(CategorySearch.filter(cats, query: "").count == 3)
+        #expect(CategorySearch.filter(cats, query: "xyz").isEmpty)
+    }
+
     @Test func fallbackProviderTriesNext() async throws {
         let p = FallbackLLMProvider([MockLLM(error: AIError.unavailable("down")), MockLLM(response: "ok")])
         #expect(try await p.infer(prompt: "a", system: "b") == "ok")
@@ -288,6 +345,29 @@ struct ExchangeRateTests {
         let t = Mappers.transaction(j)
         #expect(t.isCurrencyExchange)
         #expect(t.fxTargetCode == "BOB")
+    }
+
+    @Test func formPickersShowLiveBalanceNotInitial() async {
+        let form = TransactionFormViewModel(save: SaveTransactionUseCase(repo: MockTransactionsRepo()), catalog: MockCatalog())
+        await form.loadCatalog()
+        #expect(!form.accounts.isEmpty)
+        #expect(form.accounts.allSatisfy { $0.balance == 3258.12 })
+    }
+
+    @Test func fallbackSurfacesMissingAPIKey() {
+        struct Generic: Error {}
+        let missing = AIError.notConfigured("api key")
+        #expect(FallbackLLMProvider.mostActionable([missing, Generic()]) as? AIError == missing)
+        #expect(FallbackLLMProvider.mostActionable([AIError.unavailable("a"), AIError.unavailable("b")]) as? AIError == .unavailable("b"))
+    }
+
+    @Test func savedBannerSummary() {
+        #expect(SavedBanner.summary(type: .expense, isEditing: false, isExchange: false, amount: "Bs 50,00", account: "Banco Ganadero")
+                == "Gasto guardado · Bs 50,00 · Banco Ganadero")
+        #expect(SavedBanner.summary(type: .transfer, isEditing: false, isExchange: true, amount: "$10,00", account: nil)
+                == "Cambio registrado · $10,00")
+        #expect(SavedBanner.summary(type: .income, isEditing: true, isExchange: false, amount: "$5,00", account: "Efectivo")
+                == "Cambios guardados · $5,00 · Efectivo")
     }
 
     @Test func localeTolerantParsing() {

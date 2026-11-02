@@ -33,6 +33,14 @@ xcrun simctl ui booted appearance dark   # o light
 ```
 Correr los tests después de cada cambio. Verificación visual: Maestro (`~/.maestro/bin/maestro test flow.yaml`) en el simulador.
 
+### Código muerto (Periphery, equivalente a knip)
+```bash
+periphery scan --strict -- -destination 'generic/platform=iOS Simulator'   # config en .periphery.yml
+```
+- Correrlo antes de cada versión (TestFlight/App Store) o tras cambios grandes. Debe salir "No unused code detected".
+- Sin uso de verdad → borrarlo. Funcionalidad pendiente → conservar con `// periphery:ignore - pending: <qué falta>`.
+- Propiedades de entidades mapeadas desde la API pero aún no mostradas se conservan (`retain_assign_only_properties`).
+
 ## Arquitectura (Clean Architecture + MVVM, dependencias hacia adentro)
 ```
 Presentation  (Views + @Observable ViewModels por feature)

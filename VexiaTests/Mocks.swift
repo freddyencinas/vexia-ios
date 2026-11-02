@@ -87,7 +87,7 @@ final class MockCatalog: CatalogRepository {
     func categories(type: String?) async throws -> [FinancialCategory] { Fixtures.categories }
     func createCategory(name: String, icon: String, type: String) async throws {}
     func accounts() async throws -> [Account] { Fixtures.accounts }
-    func accountBalances() async throws -> [Account] { Fixtures.accounts }
+    func accountBalances() async throws -> [Account] { Fixtures.accounts.map { var a = $0; a.currentBalance = 3258.12; return a } }
     func currencyPreferences() async throws -> [CurrencyPreference] { prefs }
     func countryRates() async throws -> [CountryRate] { [] }
     func exchangeRate(from: String, to: String) async throws -> Double? { nil }

@@ -20,6 +20,7 @@ final class GoogleOAuthProvider: NSObject, GoogleIdentityProvider {
 
     private let clientID: String
     private let urlSession: URLSession
+    // Strong ref keeps the auth session alive while Google's sheet is open.
     private var session: ASWebAuthenticationSession?
 
     init(clientID: String, urlSession: URLSession = .shared) {

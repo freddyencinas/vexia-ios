@@ -44,7 +44,6 @@ final class DashboardViewModel {
 
     var currency: String { data.overview?.currencyCode ?? baseCurrency }
     private var baseCurrency: String { accounts.first(where: { $0.code == "USD" })?.code ?? accounts.first?.code ?? "USD" }
-    var monthExpenses: Double? { month?.expenses }
 
     var insight: Insight? {
         guard let m = month, m.income > 0 else { return nil }

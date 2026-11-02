@@ -6,9 +6,6 @@ nonisolated enum TransactionType: String, CaseIterable, Identifiable, Hashable, 
     var title: String {
         switch self { case .income: "Ingreso"; case .expense: "Gasto"; case .transfer: "Transferencia" }
     }
-    var symbol: String {
-        switch self { case .income: "arrow.down.left"; case .expense: "arrow.up.right"; case .transfer: "arrow.left.arrow.right" }
-    }
 }
 
 nonisolated struct CurrencySnapshot: Hashable, Sendable {
@@ -77,9 +74,6 @@ nonisolated struct TransactionFilter: Hashable, Sendable {
     enum Period: String, CaseIterable, Identifiable, Sendable {
         case currentMonth, previousMonth, all
         var id: String { rawValue }
-        var title: String {
-            switch self { case .currentMonth: "Este mes"; case .previousMonth: "Mes anterior"; case .all: "Todo" }
-        }
         func range(now: Date = .now, calendar: Calendar = .current) -> (Date, Date)? {
             switch self {
             case .all: return nil
@@ -180,12 +174,6 @@ nonisolated enum AccountType: String, CaseIterable, Sendable {
         case .bank, .checking: "building.columns"; case .savings: "banknote"; case .creditCard: "creditcard"
         case .cash: "dollarsign.circle"; case .investment: "chart.line.uptrend.xyaxis"; case .crypto: "bitcoinsign.circle"
         case .other: "wallet.bifold"
-        }
-    }
-    var title: String {
-        switch self {
-        case .bank: "Banco"; case .checking: "Corriente"; case .savings: "Ahorros"; case .creditCard: "Tarjeta de crédito"; case .cash: "Efectivo"
-        case .investment: "Inversión"; case .crypto: "Cripto"; case .other: "Otra"
         }
     }
 }

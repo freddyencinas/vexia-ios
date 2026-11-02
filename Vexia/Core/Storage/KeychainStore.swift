@@ -40,11 +40,3 @@ nonisolated struct KeychainStore: SecureStore {
     }
 }
 
-/// In-memory store for tests and previews.
-nonisolated final class InMemorySecureStore: SecureStore, @unchecked Sendable {
-    private var storage: [String: String] = [:]
-    private let lock = NSLock()
-    nonisolated init() {}
-    nonisolated func string(for key: String) -> String? { lock.withLock { storage[key] } }
-    nonisolated func set(_ value: String?, for key: String) { lock.withLock { storage[key] = value } }
-}

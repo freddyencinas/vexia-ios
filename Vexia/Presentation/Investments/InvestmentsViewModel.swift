@@ -199,7 +199,6 @@ final class InvestmentFormViewModel {
     var qty: Double { num(quantityText) ?? 0 }
     var price: Double { num(priceText) ?? 0 }
     var fee: Double { num(feeText) ?? 0 }
-    var unitWord: String { isCrypto ? (draft.symbol.isEmpty ? "unidades" : draft.symbol.uppercased()) : (qty == 1 ? "acción" : "acciones") }
     var total: Double { isSell ? qty * price - fee : qty * price + fee }
     var maxSell: Double? { holding?.quantity }
     var overMax: Bool { isSell && maxSell.map { qty > $0 + 1e-9 } ?? false }
@@ -223,7 +222,7 @@ final class InvestmentFormViewModel {
 
     func loadAccounts() async {
         guard let catalog, accounts.isEmpty else { return }
-        accounts = (try? await catalog.accounts()) ?? []
+        accounts = (try? await catalog.accountBalances()) ?? []  // pickers show live balance
         if draft.accountId == nil { draft.accountId = accounts.first(where: { $0.code == "USD" })?.id ?? accounts.first?.id }
     }
 

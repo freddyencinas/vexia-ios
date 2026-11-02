@@ -66,7 +66,6 @@ enum Fmt {
     }
 
     static func shortDate(_ d: Date) -> String { d.formatted(.dateTime.day().month(.abbreviated)) }
-    static func longDate(_ d: Date) -> String { d.formatted(date: .long, time: .omitted) }
     /// "Octubre" (capitalized month name in Spanish).
     static func monthName(_ d: Date) -> String {
         d.formatted(.dateTime.month(.wide).locale(Locale(identifier: "es"))).capitalizedFirst
@@ -77,9 +76,6 @@ enum Fmt {
     static func time(_ d: Date) -> String { d.formatted(date: .omitted, time: .shortened) }
 
     static func monthYear(_ d: Date) -> String { d.formatted(.dateTime.month(.wide).year()) }
-
-    private static let isoCodes: Set<String> = Set(Locale.commonISOCurrencyCodes)
-    private static func safeCode(_ c: String) -> String { isoCodes.contains(c) ? c : "USD" }
 }
 
 nonisolated enum DateCoding {

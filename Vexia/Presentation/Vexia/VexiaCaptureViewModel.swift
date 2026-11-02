@@ -35,7 +35,7 @@ final class VexiaCaptureViewModel {
         }
         transcript = ""
         do {
-            try transcriber.start(locale: Locale(identifier: language == "en" ? "en-US" : "es-ES")) { [weak self] text in
+            try await transcriber.start(locale: Locale(identifier: language == "en" ? "en-US" : "es-ES")) { [weak self] text in
                 self?.transcript = text
                 self?.armSilenceTimer()
             }
@@ -45,17 +45,22 @@ final class VexiaCaptureViewModel {
 
     /// Auto-stop after 2 s of silence.
     private func armSilenceTimer() {
+        guard phase == .listening else { return } // late partials while stopping must not re-arm
         silenceTask?.cancel()
         silenceTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
-            guard !Task.isCancelled, self?.phase == .listening else { return }
-            await self?.stopAndProcess()
+            guard !Task.isCancelled, let self, self.phase == .listening else { return }
+            // Detach from the handle first: stopAndProcess cancels `silenceTask`, which here is the
+            // running task itself → the LLM call would inherit the cancellation (CancellationError).
+            self.silenceTask = nil
+            await self.stopAndProcess()
         }
     }
 
     func stopAndProcess() async {
-        silenceTask?.cancel()
+        silenceTask?.cancel(); silenceTask = nil
         guard phase == .listening else { return }
+        phase = .thinking
         let text = await transcriber.stop()
         transcript = text
         await process(text: text, image: nil)

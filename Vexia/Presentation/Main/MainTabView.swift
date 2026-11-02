@@ -21,6 +21,7 @@ struct MainTabView: View {
     @State private var showAssistant = false
     @State private var showSettings = false
     @State private var showNewInvestment = false
+    @State private var savedBanner = SavedBannerCenter()
 
     enum AppTab: Hashable { case dashboard, transactions, investments, budgets, add }
 
@@ -73,6 +74,7 @@ struct MainTabView: View {
             Tab("Añadir", systemImage: "plus", value: .add, role: .prominent) { Color.clear }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
+        .modifier(SavedBanner(center: savedBanner))
         .onChange(of: selection) { old, new in
             if new == .add {
                 selection = old == .add ? lastTab : old
@@ -118,6 +120,8 @@ struct MainTabView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(vm: SettingsViewModel(settings: container.settings, biometrics: container.biometrics))
         }
+        // Outermost so every sheet above (and the ones tabs present) inherits it.
+        .environment(savedBanner)
     }
 
     private func handle(_ action: AddActionSheet.Action) {

@@ -194,7 +194,8 @@ final class TransactionFormViewModel {
     func loadCatalog() async {
         guard accounts.isEmpty else { return }
         isLoadingCatalog = true
-        async let a = try? catalog.accounts()
+        // /accounts/balances: plain /accounts has no currentBalance, so pickers would show the initial balance.
+        async let a = try? catalog.accountBalances()
         async let c = try? catalog.categories(type: nil)
         accounts = (await a ?? []).sorted { $0.isFavorite && !$1.isFavorite }
         categories = await c ?? []
@@ -235,6 +236,7 @@ final class TransactionFormViewModel {
         recomputeFX()
     }
 
+    // periphery:ignore - pending: "refresh all rates" action in the form
     func refreshAllRates() async {
         isRefreshingRates = true; defer { isRefreshingRates = false }
         let fresh = await loadRates(rateCurrencies, forceExternal: true)
@@ -244,6 +246,7 @@ final class TransactionFormViewModel {
         infoMessage = fresh.isEmpty ? "No se pudieron actualizar las tasas" : "Tasas actualizadas (\(fresh.count))"
     }
 
+    // periphery:ignore - pending: long-press on a rate chip to refresh it
     func refreshRate(_ code: String) async {
         if let q = await loadRates([code], forceExternal: true)[code] {
             quotes[code] = q
@@ -322,6 +325,7 @@ final class TransactionFormViewModel {
     var fxRateValue: Double? { parse(exchangeRateText) }
     var usesDayFXRate: Bool { !rateTypedByUser }
     func useDayFXRate() { rateTypedByUser = false; recomputeFX() }
+    // periphery:ignore - pending: quick-set FX rate from a suggestion
     func setFXRate(_ v: Double) { exchangeRateText = Fmt.editable(v, digits: 0...6); rateTypedByUser = true; amountChanged() }
     /// Difference in received amount vs. the day rate (positive = you receive less).
     var fxShortfall: Double? {
@@ -359,6 +363,10 @@ final class TransactionFormViewModel {
         case .income: return (isEditing ? "Guardar cambios · " : "Guardar ingreso · ") + amount
         case .transfer: return needsConversion ? "Cambiar \(amount) → \(Fmt.money(parse(toAmountText) ?? 0, currency: toCode))" : "Transferir · " + amount
         }
+    }
+    var savedSummary: String {
+        SavedBanner.summary(type: draft.type, isEditing: isEditing, isExchange: needsConversion,
+                            amount: Fmt.money(amountValue, currency: accountCode), account: fromAccount?.name)
     }
     var title: String {
         if isEditing { return "Editar" }

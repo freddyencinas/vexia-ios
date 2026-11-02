@@ -4,7 +4,6 @@ import SwiftUI
 /// Composition root: the only place that knows concrete implementations.
 @Observable
 final class AppContainer {
-    let secure: SecureStore
     let tokens: TokenStore
     let api: APIClient
 
@@ -25,7 +24,6 @@ final class AppContainer {
     let makeTranscriber: () -> SpeechTranscriber
 
     init(secure: SecureStore = KeychainStore()) {
-        self.secure = secure
         tokens = TokenStore(store: secure)
         api = APIClient(tokens: tokens)
         let settings = LocalSettingsRepository(secure: secure)
