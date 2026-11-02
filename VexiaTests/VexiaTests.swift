@@ -481,7 +481,7 @@ final class NoopInvestments: InvestmentsRepository {
     func create(_ draft: InvestmentDraft) async throws {}
     func update(id: Int, _ draft: InvestmentDraft) async throws {}
     func delete(id: Int) async throws {}
-    func updatePrices() async throws {}
+    func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }
 
 final class NoopCrypto: CryptoRepository {
@@ -493,7 +493,7 @@ final class NoopCrypto: CryptoRepository {
     func create(_ draft: InvestmentDraft) async throws {}
     func update(id: Int, _ draft: InvestmentDraft) async throws {}
     func delete(id: Int) async throws {}
-    func updatePrices() async throws {}
+    func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }
 
 @Suite("Google sign-in")
@@ -782,5 +782,42 @@ struct AmountMathTests {
         let d = AmountMath.parse("0.00352")!
         #expect(AmountMath.parse(AmountMath.editable(d, maxDecimals: 8)) == d)
         #expect(AmountMath.decimal(0.1) == AmountMath.parse("0.1"))
+    }
+}
+
+@Suite("Activity island")
+@MainActor struct ActivityIslandTests {
+    @Test func priceUpdateSummaries() {
+        let all = InvestmentsViewModel.priceUpdateMessage(PriceUpdateResult(total: 12, updated: 12), value: 5641.94, delta: 45.2)
+        #expect(all.tone == .success && all.delta == 45.2)
+        let some = InvestmentsViewModel.priceUpdateMessage(PriceUpdateResult(total: 12, updated: 10), value: 1, delta: 0.001)
+        #expect(some.tone == .warning && some.delta == nil)   // sub-cent noise is not a "change"
+        #expect(InvestmentsViewModel.priceUpdateMessage(PriceUpdateResult(total: 3, updated: 0), value: 0, delta: 0).tone == .failure)
+        #expect(InvestmentsViewModel.priceUpdateMessage(PriceUpdateResult(total: 0, updated: 0), value: 0, delta: 0).tone == .warning)
+    }
+
+    @Test func statsParsedFromBackend() throws {
+        let j = try JSON.parse(Data(#"{"success":true,"data":{"stats":{"total":5,"successful":4,"failed":1}}}"#.utf8))
+        #expect(Mappers.priceUpdate(j) == PriceUpdateResult(total: 5, updated: 4))
+    }
+
+    @Test func islandRunShowsResultAndIgnoresStaleRuns() async {
+        let center = ActivityIslandCenter()
+        await center.run("…") { IslandMessage(title: "ok") }
+        #expect(center.phase == .done(IslandMessage(title: "ok")))
+        center.clear(.done(IslandMessage(title: "ok")))
+        #expect(center.phase == nil)
+    }
+}
+
+@Suite("Crypto exchanges")
+@MainActor struct CryptoExchangeTests {
+    @Test func idAndLegacyTextOfSameExchangeAreOneChip() async {
+        let catalog = MockCatalog()
+        catalog.categoryList = [FinancialCategory(id: "11111111-1111-1111-1111-111111111111", code: "NEXO", name: "Nexo", icon: nil, type: "exchange", isGlobal: true)]
+        let vm = InvestmentsViewModel(stocks: MockStocks(), crypto: MockCrypto(), catalog: catalog)
+        vm.segment = .crypto
+        await vm.load()
+        #expect(vm.exchangeLabels(["11111111-1111-1111-1111-111111111111", "nexo", "Binance", "22222222-2222-2222-2222-222222222222"]) == ["Nexo", "Binance"])
     }
 }

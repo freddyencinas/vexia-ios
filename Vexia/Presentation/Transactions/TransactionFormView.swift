@@ -48,7 +48,7 @@ struct TransactionFormView: View {
             .sheet(item: $vm.rateEditRequest) { req in
                 RateEditorSheet(vm: RateEditorViewModel(code: req.code, current: vm.rate(for: req.code), previewAmount: req.preview, catalog: vm.catalogRepository),
                                 onApplyOnce: { v in vm.applyManual(req.code, v) },
-                                onSaveGlobal: { v in await vm.saveGlobal(req.code, v) })
+                                onSaveGlobal: { v in try await vm.saveGlobal(req.code, v) })
             }
             .errorAlert($vm.errorMessage)
         }

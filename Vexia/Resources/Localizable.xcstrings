@@ -175,6 +175,16 @@
         }
       }
     },
+    "%lld de %lld precios actualizados": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld prices updated"
+          }
+        }
+      }
+    },
     "%lld etiquetas": {
       "localizations": {
         "en": {
@@ -303,6 +313,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Active"
+          }
+        }
+      }
+    },
+    "Actualizando precios de acciones…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating stock prices…"
+          }
+        }
+      }
+    },
+    "Actualizando precios de cripto…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating crypto prices…"
+          }
+        }
+      }
+    },
+    "Actualizando tasas…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating rates…"
           }
         }
       }
@@ -1877,6 +1917,16 @@
         }
       }
     },
+    "Guardando tasa %@…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving %@ rate…"
+          }
+        }
+      }
+    },
     "Guardando…": {
       "localizations": {
         "en": {
@@ -2557,6 +2607,16 @@
         }
       }
     },
+    "No hay precios que actualizar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No prices to update"
+          }
+        }
+      }
+    },
     "No hay registros en %@. Registra uno con el botón + o revisa otro mes.": {
       "localizations": {
         "en": {
@@ -2633,6 +2693,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Couldn't update the rates"
+          }
+        }
+      }
+    },
+    "No se pudieron actualizar los precios": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't update prices"
+          }
+        }
+      }
+    },
+    "No se pudo guardar la tasa": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save the rate"
           }
         }
       }
@@ -3063,6 +3143,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avg price"
+          }
+        }
+      }
+    },
+    "Precios actualizados": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prices updated"
           }
         }
       }
@@ -3817,6 +3907,16 @@
         }
       }
     },
+    "Tasa %@ guardada": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ rate saved"
+          }
+        }
+      }
+    },
     "Tasa %@ guardada: %@": {
       "localizations": {
         "en": {
@@ -3857,12 +3957,32 @@
         }
       }
     },
+    "Tasas actualizadas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rates updated"
+          }
+        }
+      }
+    },
     "Tasas actualizadas (%lld)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Rates updated (%lld)"
+          }
+        }
+      }
+    },
+    "Tasas al día": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rates up to date"
           }
         }
       }
@@ -4203,6 +4323,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Current value"
+          }
+        }
+      }
+    },
+    "Valor actual %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current value %@"
           }
         }
       }

@@ -356,13 +356,12 @@ final class TransactionFormViewModel {
     func useDayRate() { draft.manualRates[accountCode] = nil; recomputeFX() }
     func editRate(_ code: String, preview: Double?) { rateEditRequest = RateEditRequest(code: code, preview: preview) }
     func applyManual(_ code: String, _ v: Double) { draft.manualRates[code] = v; recomputeFX() }
-    func saveGlobal(_ code: String, _ v: Double) async {
-        do {
-            try await catalog.saveUSDRate(code: code, rate: v, date: draft.date)
-            quotes[code] = RateQuote(code: code, rate: v, source: .saved)
-            draft.manualRates[code] = nil
-            recomputeFX()
-        } catch { errorMessage = error.localizedDescription }
+    /// Throws so the caller (island) reports the failure.
+    func saveGlobal(_ code: String, _ v: Double) async throws {
+        try await catalog.saveUSDRate(code: code, rate: v, date: draft.date)
+        quotes[code] = RateQuote(code: code, rate: v, source: .saved)
+        draft.manualRates[code] = nil
+        recomputeFX()
     }
 
     // Currency exchange helpers

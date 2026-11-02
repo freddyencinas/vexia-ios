@@ -3,6 +3,7 @@ import SwiftUI
 struct RatesView: View {
     @State var vm: RatesViewModel
     @Environment(\.container) private var container
+    @Environment(ActivityIslandCenter.self) private var island: ActivityIslandCenter?
     @State private var exchangeDraft: TransactionDraft?
 
     var body: some View {
@@ -23,9 +24,15 @@ struct RatesView: View {
         .navigationTitle("Tasas del día")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { Task { await vm.load(forceExternal: true) } } label: {
+                Button {
+                    Task {
+                        if let island { await island.run(String(localized: "Actualizando tasas…")) { await vm.refresh() } }
+                        else { await vm.load(forceExternal: true) }
+                    }
+                } label: {
                     if vm.isLoading { ProgressView() } else { Label("Actualizar", systemImage: "arrow.clockwise") }
                 }
+                .disabled(vm.isLoading)
             }
         }
         .refreshable { await vm.load(forceExternal: true) }
@@ -33,7 +40,7 @@ struct RatesView: View {
         .sheet(item: Binding(get: { vm.editing.map(IdentifiedCode.init) }, set: { vm.editing = $0?.id })) { item in
             RateEditorSheet(vm: RateEditorViewModel(code: item.id, current: vm.rows.first { $0.code == item.id }?.quote?.rate,
                                                     previewAmount: nil, catalog: vm.catalog),
-                            onApplyOnce: nil, onSaveGlobal: { v in await vm.save(item.id, v) })
+                            onApplyOnce: nil, onSaveGlobal: { v in try await vm.save(item.id, v) })
         }
         .sheet(item: Binding(get: { exchangeDraft.map(IdentifiedDraft.init) }, set: { exchangeDraft = $0?.draft })) { item in
             if let container {

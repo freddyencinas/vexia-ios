@@ -144,7 +144,7 @@ final class MockStocks: InvestmentsRepository, @unchecked Sendable {
     func create(_ draft: InvestmentDraft) async throws {}
     func update(id: Int, _ draft: InvestmentDraft) async throws {}
     func delete(id: Int) async throws {}
-    func updatePrices() async throws {}
+    func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }
 
 final class MockCrypto: CryptoRepository, @unchecked Sendable {
@@ -156,5 +156,5 @@ final class MockCrypto: CryptoRepository, @unchecked Sendable {
     func create(_ draft: InvestmentDraft) async throws {}
     func update(id: Int, _ draft: InvestmentDraft) async throws {}
     func delete(id: Int) async throws {}
-    func updatePrices() async throws {}
+    func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }

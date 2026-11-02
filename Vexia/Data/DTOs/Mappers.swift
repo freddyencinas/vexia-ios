@@ -244,6 +244,11 @@ nonisolated enum Mappers {
         return .compact(o)
     }
 
+    static func priceUpdate(_ j: JSON) -> PriceUpdateResult {
+        let s = j["data"]["stats"]
+        return PriceUpdateResult(total: s["total"].intValue, updated: s["successful"].intValue)
+    }
+
     // MARK: Crypto
     static func cryptoTransaction(_ j: JSON) -> CryptoTransaction {
         CryptoTransaction(id: j["id"].intValue, cryptoSymbol: j["cryptoSymbol"].stringValue,

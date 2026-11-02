@@ -102,6 +102,12 @@ nonisolated struct CryptoPortfolio: Hashable, Sendable {
     var totalTransactions: Int
 }
 
+/// Result of a bulk price refresh (backend `data.stats`).
+nonisolated struct PriceUpdateResult: Equatable, Sendable {
+    var total: Int
+    var updated: Int
+}
+
 /// Draft for stock/crypto operations.
 nonisolated struct InvestmentDraft: Hashable, Sendable {
     var symbol = ""

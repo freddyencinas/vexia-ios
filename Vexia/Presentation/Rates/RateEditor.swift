@@ -74,10 +74,11 @@ struct RateEditorSheet: View {
     @State var vm: RateEditorViewModel
     /// nil hides "solo esta vez" (global editing from Tasas del día).
     var onApplyOnce: ((Double) -> Void)?
-    var onSaveGlobal: (Double) async -> Void
+    var onSaveGlobal: (Double) async throws -> Void
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
     @State private var saving = false
+    @Environment(ActivityIslandCenter.self) private var island: ActivityIslandCenter?
 
     var body: some View {
         NavigationStack {
@@ -141,8 +142,7 @@ struct RateEditorSheet: View {
                     }
                     Button {
                         guard let v = vm.value else { return }
-                        saving = true
-                        Task { await onSaveGlobal(v); saving = false; dismiss() }
+                        saveGlobally(v)
                     } label: {
                         Text(saving ? String(localized: "Guardando…") : String(localized: "Guardar como tasa de hoy para todo")).font(.headline).frame(maxWidth: .infinity, minHeight: 34)
                     }
@@ -158,6 +158,23 @@ struct RateEditorSheet: View {
             .task { await vm.load() }
         }
         .presentationDetents([.large])
+    }
+
+    /// With the island: close right away and report progress/result there (works over sheets).
+    private func saveGlobally(_ v: Double) {
+        let code = vm.code, save = onSaveGlobal
+        guard let island else {
+            saving = true
+            Task { try? await save(v); saving = false; dismiss() }
+            return
+        }
+        dismiss()
+        Task {
+            await island.run(String(localized: "Guardando tasa \(code)…")) {
+                do { try await save(v); return ActivityIslandCenter.rateSaved(code: code, rate: v) }
+                catch { return ActivityIslandCenter.rateFailed(error) }
+            }
+        }
     }
 }
 

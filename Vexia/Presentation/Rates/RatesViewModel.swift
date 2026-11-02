@@ -43,12 +43,21 @@ final class RatesViewModel {
         updatedAt = .now
     }
 
-    func save(_ code: String, _ v: Double) async {
-        do {
-            try await catalog.saveUSDRate(code: code, rate: v, date: .now)
-            message = String(localized: "Tasa \(code) guardada: \(Fmt.grouped(v))")
-            await load()
-        } catch { message = error.localizedDescription }
+    /// Forces fresh external rates and summarizes them for the island.
+    func refresh() async -> IslandMessage {
+        let before = Dictionary(rows.compactMap { r in r.quote.map { (r.code, $0.rate) } }, uniquingKeysWith: { a, _ in a })
+        await load(forceExternal: true)
+        let after = rows.compactMap { r in r.quote.map { (r.code, $0.rate) } }
+        guard !after.isEmpty else { return IslandMessage(title: String(localized: "No se pudieron actualizar las tasas"), tone: .failure) }
+        let changed = after.contains { code, rate in before[code].map { abs($0 - rate) > 1e-9 } ?? true }
+        return IslandMessage(title: changed ? String(localized: "Tasas actualizadas") : String(localized: "Tasas al día"),
+                             detail: after.prefix(3).map { "\($0.0) \(Fmt.grouped($0.1))" }.joined(separator: " · "))
+    }
+
+    /// Throws so the caller (island) reports the failure; success is shown there too.
+    func save(_ code: String, _ v: Double) async throws {
+        try await catalog.saveUSDRate(code: code, rate: v, date: .now)
+        await load()
     }
 
     static func name(_ code: String) -> String {

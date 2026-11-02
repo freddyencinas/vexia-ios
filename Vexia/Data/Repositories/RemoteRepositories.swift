@@ -189,7 +189,9 @@ final class RemoteInvestmentsRepository: InvestmentsRepository {
     func create(_ d: InvestmentDraft) async throws { _ = try await http.post("/investments", body: Mappers.investmentBody(d, isUpdate: false)) }
     func update(id: Int, _ d: InvestmentDraft) async throws { _ = try await http.put("/investments/\(id)", body: Mappers.investmentBody(d, isUpdate: true)) }
     func delete(id: Int) async throws { _ = try await http.delete("/investments/\(id)") }
-    func updatePrices() async throws { _ = try await http.put("/investments/update-prices", body: ["forceUpdate": true]) }
+    func updatePrices() async throws -> PriceUpdateResult {
+        Mappers.priceUpdate(try await http.put("/investments/update-prices", body: ["forceUpdate": true]))
+    }
 }
 
 final class RemoteCryptoRepository: CryptoRepository {
@@ -209,7 +211,9 @@ final class RemoteCryptoRepository: CryptoRepository {
     func create(_ d: InvestmentDraft) async throws { _ = try await http.post("/crypto/transactions", body: Mappers.cryptoBody(d, isUpdate: false)) }
     func update(id: Int, _ d: InvestmentDraft) async throws { _ = try await http.put("/crypto/transactions/\(id)", body: Mappers.cryptoBody(d, isUpdate: true)) }
     func delete(id: Int) async throws { _ = try await http.delete("/crypto/transactions/\(id)") }
-    func updatePrices() async throws { _ = try await http.put("/crypto/update-prices", body: ["forceUpdate": true]) }
+    func updatePrices() async throws -> PriceUpdateResult {
+        Mappers.priceUpdate(try await http.put("/crypto/update-prices", body: ["forceUpdate": true]))
+    }
 }
 
 final class RemoteBudgetRepository: BudgetRepository {

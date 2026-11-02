@@ -59,7 +59,7 @@ protocol InvestmentsRepository: AnyObject, Sendable {
     func create(_ draft: InvestmentDraft) async throws
     func update(id: Int, _ draft: InvestmentDraft) async throws
     func delete(id: Int) async throws
-    func updatePrices() async throws
+    func updatePrices() async throws -> PriceUpdateResult
 }
 
 protocol CryptoRepository: AnyObject, Sendable {
@@ -71,7 +71,7 @@ protocol CryptoRepository: AnyObject, Sendable {
     func create(_ draft: InvestmentDraft) async throws
     func update(id: Int, _ draft: InvestmentDraft) async throws
     func delete(id: Int) async throws
-    func updatePrices() async throws
+    func updatePrices() async throws -> PriceUpdateResult
 }
 
 protocol BudgetRepository: AnyObject, Sendable {

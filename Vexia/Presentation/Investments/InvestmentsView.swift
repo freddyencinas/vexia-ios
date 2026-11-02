@@ -3,6 +3,7 @@ import Charts
 
 /// Inversiones (design: market selector in the title, neutral zero, view chips, exchange filter, rich empty state).
 struct InvestmentsView: View {
+    @Environment(ActivityIslandCenter.self) private var island: ActivityIslandCenter?
     @State var vm: InvestmentsViewModel
     @Binding var showNewOperation: Bool
     @Environment(\.container) private var container
@@ -40,7 +41,13 @@ struct InvestmentsView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button("Actualizar precios", systemImage: "arrow.triangle.2.circlepath") { Task { await vm.updatePrices() } }
+                Button("Actualizar precios", systemImage: "arrow.triangle.2.circlepath") {
+                    Task {
+                        if let island { await island.run(vm.updatingPricesTitle) { await vm.updatePrices() } }
+                        else { _ = await vm.updatePrices() }
+                    }
+                }
+                .disabled(island?.isWorking == true)
             }
         }
         .refreshable { await vm.load() }
@@ -66,7 +73,7 @@ struct InvestmentsView: View {
         let h = vm.headline
         let isZero = abs(h.gain) < 0.005
         return VStack(alignment: .leading, spacing: 8) {
-            Text(vm.exchange.flatMap(vm.exchangeLabel).map { String(localized: "Valor actual · \($0)") } ?? String(localized: "Valor actual")).font(.footnote).foregroundStyle(Color(hex: 0xD6DEF5))
+            Text(vm.exchange.map { String(localized: "Valor actual · \($0)") } ?? String(localized: "Valor actual")).font(.footnote).foregroundStyle(Color(hex: 0xD6DEF5))
             Text(Fmt.money(h.value)).font(.system(size: 32, weight: .bold, design: .rounded).monospacedDigit())
             HStack {
                 Text("Invertido \(Fmt.money(h.invested, compact: true))").font(.footnote).foregroundStyle(Color(hex: 0xD6DEF5))
@@ -121,7 +128,7 @@ struct InvestmentsView: View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
                 chip(String(localized: "Todas"), vm.exchange == nil) { vm.exchange = nil }
-                ForEach(vm.exchanges, id: \.self) { e in chip(vm.exchangeLabel(e) ?? e, vm.exchange == e) { vm.exchange = e } }
+                ForEach(vm.exchanges, id: \.self) { e in chip(e, vm.exchange == e) { vm.exchange = e } }
             }
         }
         .scrollIndicators(.hidden)

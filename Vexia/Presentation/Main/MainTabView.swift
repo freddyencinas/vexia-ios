@@ -22,6 +22,7 @@ struct MainTabView: View {
     @State private var showSettings = false
     @State private var showNewInvestment = false
     @State private var savedBanner = SavedBannerCenter()
+    @State private var island = ActivityIslandCenter()
 
     enum AppTab: Hashable { case dashboard, transactions, investments, budgets, add }
 
@@ -75,6 +76,7 @@ struct MainTabView: View {
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .modifier(SavedBanner(center: savedBanner))
+        .modifier(ActivityIsland(center: island))
         .onChange(of: selection) { old, new in
             if new == .add {
                 selection = old == .add ? lastTab : old
@@ -123,6 +125,7 @@ struct MainTabView: View {
         }
         // Outermost so every sheet above (and the ones tabs present) inherits it.
         .environment(savedBanner)
+        .environment(island)
     }
 
     private func handle(_ action: AddActionSheet.Action) {

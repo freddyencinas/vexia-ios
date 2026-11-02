@@ -26,6 +26,7 @@ final class InvestmentsViewModel {
 
     var segment: Segment = .stocks
     var tab: Tab = .portfolio
+    /// Selected exchange filter, by display name (one exchange may be stored as id and as legacy text).
     var exchange: String? = nil
     private(set) var isLoading = false
     private(set) var loadedOnce = false
@@ -76,11 +77,29 @@ final class InvestmentsViewModel {
         }
     }
 
-    func updatePrices() async {
+    var updatingPricesTitle: String {
+        segment == .stocks ? String(localized: "Actualizando precios de acciones…") : String(localized: "Actualizando precios de cripto…")
+    }
+
+    /// Refreshes market prices and reports how the portfolio value moved.
+    func updatePrices() async -> IslandMessage {
+        let before = headline.value
         do {
-            if segment == .stocks { try await stocksRepo.updatePrices() } else { try await cryptoRepo.updatePrices() }
+            let result = segment == .stocks ? try await stocksRepo.updatePrices() : try await cryptoRepo.updatePrices()
             await load()
-        } catch { errorMessage = error.localizedDescription }
+            return Self.priceUpdateMessage(result, value: headline.value, delta: headline.value - before)
+        } catch {
+            return IslandMessage(title: String(localized: "No se pudieron actualizar los precios"), detail: error.localizedDescription, tone: .failure)
+        }
+    }
+
+    static func priceUpdateMessage(_ r: PriceUpdateResult, value: Double, delta: Double) -> IslandMessage {
+        guard r.total > 0 else { return IslandMessage(title: String(localized: "No hay precios que actualizar"), tone: .warning) }
+        guard r.updated > 0 else { return IslandMessage(title: String(localized: "No se pudieron actualizar los precios"), tone: .failure) }
+        let title = r.updated == r.total ? String(localized: "Precios actualizados")
+                                         : String(localized: "\(r.updated) de \(r.total) precios actualizados")
+        return IslandMessage(title: title, detail: String(localized: "Valor actual \(Fmt.money(value))"),
+                             delta: abs(delta) >= 0.005 ? delta : nil, tone: r.updated == r.total ? .success : .warning)
     }
 
     func deleteStock(_ inv: Investment) async {
@@ -92,18 +111,25 @@ final class InvestmentsViewModel {
 
     // MARK: Derived
 
+    /// Exchange names to filter by. Stored values mix category ids and legacy text ("Nexo"),
+    /// so they're grouped by name; unresolved ids are never shown.
     var exchanges: [String] {
-        // Values are exchange category ids (or legacy names); unresolved ids are never shown.
-        Array(Set((cryptoOps.compactMap { $0.exchangePlatform?.nilIfEmpty } + pnl.compactMap { $0.exchange?.nilIfEmpty })
-            .filter { exchangeLabel($0) != nil }))
-            .sorted { (exchangeLabel($0) ?? $0).localizedStandardCompare(exchangeLabel($1) ?? $1) == .orderedAscending }
+        exchangeLabels(cryptoOps.compactMap { $0.exchangePlatform?.nilIfEmpty } + pnl.compactMap { $0.exchange?.nilIfEmpty })
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     /// Display name for a stored exchange value; nil for an id we can't resolve.
     func exchangeLabel(_ raw: String) -> String? {
         exchangeNames[raw] ?? (UUID(uuidString: raw) == nil ? raw : nil)
     }
-    func exchangeLabels(_ raws: [String]) -> [String] { raws.compactMap(exchangeLabel) }
+    /// Unique names, first occurrence wins ("Nexo" id + "nexo" text → one "Nexo").
+    func exchangeLabels(_ raws: [String]) -> [String] {
+        var seen = Set<String>()
+        return raws.compactMap(exchangeLabel).filter { seen.insert($0.lowercased()).inserted }
+    }
+    private func isExchange(_ raw: String?, named name: String) -> Bool {
+        raw.flatMap(exchangeLabel)?.caseInsensitiveCompare(name) == .orderedSame
+    }
 
     var holdings: [HoldingRow] {
         switch segment {
@@ -116,7 +142,7 @@ final class InvestmentsViewModel {
             let pnlBySymbol = Dictionary(grouping: pnl, by: { $0.symbol })
             return cryptoPositions.filter { $0.netQuantity > 1e-8 }.compactMap { p in
                 let ex = Array(Set(cryptoOps.filter { $0.cryptoSymbol == p.cryptoSymbol }.compactMap { $0.exchangePlatform?.nilIfEmpty })).sorted()
-                if let exchange, !ex.contains(exchange) { return nil }
+                if let exchange, !ex.contains(where: { isExchange($0, named: exchange) }) { return nil }
                 let value = pnlBySymbol[p.cryptoSymbol].map { $0.reduce(0) { $0 + $1.currentValue } }.flatMap { $0 > 0 ? $0 : nil }
                     ?? (p.isStablecoin ? p.netQuantity : nil)
                 return HoldingRow(symbol: p.cryptoSymbol, quantity: p.netQuantity, avgPrice: p.avgBuyPrice, invested: p.totalInvested,
@@ -125,8 +151,8 @@ final class InvestmentsViewModel {
         }
     }
 
-    var filteredPnL: [AssetPnL] { exchange.map { e in pnl.filter { $0.exchange == e } } ?? pnl }
-    var filteredCryptoOps: [CryptoTransaction] { exchange.map { e in cryptoOps.filter { $0.exchangePlatform == e } } ?? cryptoOps }
+    var filteredPnL: [AssetPnL] { exchange.map { e in pnl.filter { isExchange($0.exchange, named: e) } } ?? pnl }
+    var filteredCryptoOps: [CryptoTransaction] { exchange.map { e in cryptoOps.filter { isExchange($0.exchangePlatform, named: e) } } ?? cryptoOps }
 
     var headline: (value: Double, invested: Double, gain: Double, percent: Double) {
         let h = holdings
@@ -339,13 +365,12 @@ final class InvestmentFormViewModel {
     func editRate() { rateEditRequest = RateEditRequest(code: accountCode, preview: totalInAccountCurrency) }
     func useDayRate() { draft.manualRates[accountCode] = nil }
     func applyManual(_ code: String, _ v: Double) { draft.manualRates[code] = v }
-    func saveGlobal(_ code: String, _ v: Double) async {
+    /// Throws so the caller (island) reports the failure.
+    func saveGlobal(_ code: String, _ v: Double) async throws {
         guard let catalog else { return }
-        do {
-            try await catalog.saveUSDRate(code: code, rate: v, date: draft.date)
-            quotes[code] = RateQuote(code: code, rate: v, source: .saved)
-            draft.manualRates[code] = nil
-        } catch { errorMessage = error.localizedDescription }
+        try await catalog.saveUSDRate(code: code, rate: v, date: draft.date)
+        quotes[code] = RateQuote(code: code, rate: v, source: .saved)
+        draft.manualRates[code] = nil
     }
 
     func loadAccounts() async {

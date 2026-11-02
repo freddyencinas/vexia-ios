@@ -104,7 +104,7 @@ struct InvestmentFormView: View {
                 if let catalog = vm.catalogRepository {
                     RateEditorSheet(vm: RateEditorViewModel(code: req.code, current: vm.usedRate, previewAmount: req.preview, catalog: catalog),
                                     onApplyOnce: { v in vm.applyManual(req.code, v) },
-                                    onSaveGlobal: { v in await vm.saveGlobal(req.code, v) })
+                                    onSaveGlobal: { v in try await vm.saveGlobal(req.code, v) })
                 }
             }
             .sheet(isPresented: $showExchangePicker) {
