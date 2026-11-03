@@ -33,8 +33,11 @@ final class TransactionsListViewModel {
     var baseCurrency: String { summary?.currencyCode ?? items.first?.displayCurrency ?? "USD" }
 
     /// Totals for the summary card. Server summary when it has data, else computed from the loaded items.
+    /// `/transactions/summary` ignores category and text, so with those filters it would show the whole month.
     var totals: (income: Double, expenses: Double, currency: String) {
-        if let s = summary, s.totalIncome + s.totalExpenses > 0 { return (s.totalIncome, s.totalExpenses, s.currencyCode ?? "USD") }
+        if filter.categoryId == nil, filter.search.isEmpty, let s = summary, s.totalIncome + s.totalExpenses > 0 {
+            return (s.totalIncome, s.totalExpenses, s.currencyCode ?? "USD")
+        }
         let base = baseCurrency
         let inBase = items.filter { $0.displayCurrency == base }
         return (inBase.filter { $0.type == .income }.reduce(0) { $0 + abs($1.amount) },
@@ -54,8 +57,18 @@ final class TransactionsListViewModel {
         Task { await reload() }
     }
     func showAllTime() { month = nil; Task { await reload() } }
-    /// Search asked from outside the screen (Siri): the term may match any month.
-    func search(_ term: String) { month = nil; filter.search = term; Task { await reload() } }
+    /// Search asked from outside the screen (Siri): a fresh query whose spoken category/month/type become
+    /// the visible chips; without a month it spans all history.
+    func search(_ term: String) {
+        Task {
+            await loadCatalog()
+            let q = SpokenSearch.parse(term, categories: SpokenSearch.categories(categories))
+            filter = TransactionFilter(period: .all)
+            filter.type = q.type; filter.categoryId = q.categoryId; filter.search = q.text
+            month = q.monthStart
+            await reload()
+        }
+    }
 
     private var effectiveFilter: TransactionFilter {
         var f = filter

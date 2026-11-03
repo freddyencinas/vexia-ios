@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 
 /// App shell — native iOS 27 TabView with Liquid Glass tab bar.
@@ -22,6 +23,7 @@ struct MainTabView: View {
     @State private var showAssistant = false
     @State private var showSettings = false
     @State private var showNewInvestment = false
+    @State private var showRates = false
     @State private var savedBanner = SavedBannerCenter()
     @State private var island = ActivityIslandCenter()
 
@@ -50,6 +52,8 @@ struct MainTabView: View {
                                   openAssistant: { message in openAssistant(message) },
                                   openBudgets: { selection = .budgets })
                         .toolbar { profileToolbar }
+                        // Same screen the dashboard rates row pushes; opened from Siri ("abre tasas").
+                        .navigationDestination(isPresented: $showRates) { RatesView(vm: RatesViewModel(catalog: container.catalog)) }
                 }
             }
             Tab("Movimientos", systemImage: "list.bullet.rectangle", value: .transactions) {
@@ -95,7 +99,7 @@ struct MainTabView: View {
             }
         }
         .sheet(item: $newTransaction) { req in
-            TransactionFormView(vm: makeForm(prefill: req.draft, notes: req.notes)) { refreshAfterSave() }
+            TransactionFormView(vm: makeForm(prefill: req.draft, notes: req.notes)) { SiriDonations.transactionRegistered(); refreshAfterSave() }
         }
         .sheet(item: $capture) { mode in
             VexiaCaptureView(vm: VexiaCaptureViewModel(classify: container.classifyTransaction, catalog: container.catalog,
@@ -111,7 +115,7 @@ struct MainTabView: View {
         .sheet(item: $confirm) { req in
             VexiaConfirmView(vm: VexiaConfirmViewModel(draft: req.draft, notes: req.notes, heard: req.heard,
                                                       save: container.saveTransaction, catalog: container.catalog),
-                             onSaved: { refreshAfterSave() },
+                             onSaved: { SiriDonations.transactionRegistered(); refreshAfterSave() },
                              onEditAll: { draft in later { newTransaction = FormRequest(draft: draft, notes: req.notes) } },
                              onRetry: { later { capture = .voice } })
         }
@@ -125,6 +129,8 @@ struct MainTabView: View {
             SettingsView(vm: SettingsViewModel(settings: container.settings, biometrics: container.biometrics))
         }
         .onChange(of: intents.pending, initial: true) { handleIntents() }
+        // Signed in only here: teaches Siri the section and category names used inside phrases.
+        .task { VexiaShortcuts.updateAppShortcutParameters() }
         .onChange(of: session.state) { handleIntents() }
         // Outermost so every sheet above (and the ones tabs present) inherits it.
         .environment(savedBanner)
@@ -147,6 +153,8 @@ struct MainTabView: View {
         for request in intents.take() {
             switch request {
             case .refresh: refreshAfterSave()
+            case .open(.rates): selection = .dashboard; showRates = true
+            case .open(.assistant): openAssistant(nil)
             case .open(let section): selection = tab(for: section)
             case .search(let term): selection = .transactions; transactionsVM.search(term)
             case .confirm(let p):
@@ -157,7 +165,12 @@ struct MainTabView: View {
     }
 
     private func tab(for section: IntentRouter.Section) -> AppTab {
-        switch section { case .dashboard: .dashboard; case .transactions: .transactions; case .investments: .investments; case .budgets: .budgets }
+        switch section {
+        case .dashboard, .rates, .assistant: .dashboard
+        case .transactions: .transactions
+        case .investments: .investments
+        case .budgets: .budgets
+        }
     }
 
     private func openAssistant(_ message: String?) {

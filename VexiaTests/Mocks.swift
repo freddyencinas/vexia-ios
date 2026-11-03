@@ -161,3 +161,12 @@ final class MockCrypto: CryptoRepository, @unchecked Sendable {
     func delete(id: Int) async throws { deleted.append(id) }
     func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }
+
+final class MockDashboard: DashboardRepository, @unchecked Sendable {
+    var spendingResult = SpendingAnalysis(totalSpent: 0, categories: [], topExpenses: [], changePercent: 0)
+    private(set) var spendingRange: (Date, Date)?
+    func overview() async throws -> DashboardOverview { throw Unused() }
+    func cashFlow(period: String, groupBy: String) async throws -> CashFlow { throw Unused() }
+    func spending(start: Date, end: Date) async throws -> SpendingAnalysis { spendingRange = (start, end); return spendingResult }
+    func performance() async throws -> PortfolioPerformance { throw Unused() }
+}

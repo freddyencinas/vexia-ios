@@ -903,3 +903,114 @@ struct AmountMathTests {
         #expect(SiriTransactionText.title(p) == label)
     }
 }
+
+@Suite("Siri spending")
+@MainActor struct SiriSpendingTests {
+    private static let utilities = SpendingAnalysis.Category(categoryId: "c-util", categoryCode: "UTILITIES", categoryName: "Servicios básicos",
+                                                             amount: 439, percentage: 75, transactionCount: 4)
+    private static let lunch = SpendingAnalysis.Category(categoryId: "c-lunch", categoryCode: "", categoryName: "Almuerzo",
+                                                         amount: 140, percentage: 25, transactionCount: 2)
+
+    private func consult(_ period: SpendingPeriod = .thisMonth, category: (String, String)? = nil) async throws -> (ConsultSpendingUseCase.Report, MockDashboard) {
+        let dashboard = MockDashboard()
+        dashboard.spendingResult = SpendingAnalysis(totalSpent: 579, categories: [Self.lunch, Self.utilities], topExpenses: [
+            .init(id: "1", description: "servicio de tigo", amount: 439, categoryName: "Servicios básicos", date: nil)], changePercent: 0)
+        let catalog = MockCatalog()
+        catalog.prefs = [CurrencyPreference(id: "p", currencyId: "bob", currencyCode: "bob", isBaseCurrency: true)]
+        let r = try await ConsultSpendingUseCase(dashboard: dashboard, catalog: catalog)(period: period, categoryId: category?.0, categoryName: category?.1)
+        return (r, dashboard)
+    }
+
+    @Test func periodsCoverWholeDays() {
+        var cal = Calendar(identifier: .gregorian); cal.firstWeekday = 2; cal.timeZone = TimeZone(identifier: "America/La_Paz")!
+        let now = DateCoding.parse("2026-11-04")!   // Wednesday
+        let day = { (d: Date) in DateCoding.dayString(d) }
+        #expect(day(SpendingPeriod.today.days(now: now, calendar: cal).start) == "2026-11-04")
+        #expect(day(SpendingPeriod.thisWeek.days(now: now, calendar: cal).start) == "2026-11-02")
+        #expect(day(SpendingPeriod.thisMonth.days(now: now, calendar: cal).start) == "2026-11-01")
+        let last = SpendingPeriod.lastMonth.days(now: now, calendar: cal)
+        #expect(day(last.start) == "2026-10-01" && day(last.end) == "2026-10-31")
+    }
+
+    @Test func totalUsesBaseCurrencyAndBiggestCategoryFirst() async throws {
+        let (r, _) = try await consult()
+        #expect(r.currency == "BOB" && r.total == 579 && r.count == 6)
+        #expect(r.topCategories.first?.categoryId == "c-util")
+        let s = SpendingAnswer.sentence(r)
+        #expect(s.contains("6") && s.contains("Servicios básicos"))
+    }
+
+    @Test func categoryAnswerAndItsExpenses() async throws {
+        let (r, _) = try await consult(category: ("c-util", "Servicios básicos"))
+        #expect(r.total == 439 && r.count == 4 && r.topExpenses.map(\.id) == ["1"])
+        #expect(SpendingAnswer.sentence(r).contains("Servicios básicos"))
+    }
+
+    @Test func categoryWithoutExpensesSaysSo() async throws {
+        let (r, _) = try await consult(.today, category: ("c-none", "Mascotas"))
+        #expect(r.total == 0)
+        #expect(SpendingAnswer.sentence(r) == String(localized: "\(SpendingAnswer.lead(.today)) no tienes gastos en Mascotas."))
+    }
+}
+
+@Suite("Siri category names")
+struct CategorySpokenNamesTests {
+    @Test func variantsForMultiWordCategory() {
+        let s = CategorySpokenNames.synonyms(name: "Servicios básicos", raw: "Utilities", others: ["Almuerzo", "Snack Refrigerio"])
+        #expect(s.contains("servicios basicos"))
+        #expect(s.contains("Servicio básico"))
+        #expect(s.contains("Servicios"))
+        #expect(s.contains("Utilities"))
+        #expect(!s.contains { $0.lowercased() == "servicios básicos" })   // the name itself isn't repeated
+    }
+
+    @Test func firstWordSkippedWhenShared() {
+        let s = CategorySpokenNames.synonyms(name: "Servicios básicos", raw: "Servicios básicos", others: ["Servicios de streaming"])
+        #expect(!s.contains("Servicios"))
+    }
+}
+
+@Suite("Siri spoken search")
+struct SpokenSearchTests {
+    private var cal: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!; return c }
+    private var now: Date { cal.date(from: DateComponents(year: 2026, month: 11, day: 2))! }
+    private func month(_ y: Int, _ m: Int) -> Date { cal.date(from: DateComponents(year: y, month: m, day: 1))! }
+    private let cats = [
+        SpokenSearch.Category(id: "t", type: "expense", names: ["Transporte", "Transportation"]),
+        SpokenSearch.Category(id: "s", type: "expense", names: ["Servicios básicos", "servicios basicos", "Servicios"]),
+        SpokenSearch.Category(id: "sal", type: "income", names: ["Salario"]),
+    ]
+    private func parse(_ t: String) -> SpokenSearch.Query { SpokenSearch.parse(t, categories: cats, now: now, calendar: cal) }
+
+    @Test func sentenceBecomesFilters() {
+        let q = parse("gastos en transporte en octubre")
+        #expect(q == .init(type: .expense, categoryId: "t", monthStart: month(2026, 10), text: ""))
+    }
+
+    @Test func categoryAloneMeansThisMonth() {
+        let q = parse("servicios básicos")
+        #expect(q.categoryId == "s")
+        #expect(q.monthStart == month(2026, 11))
+        #expect(q.text.isEmpty)
+    }
+
+    @Test func futureMonthIsLastYear() {
+        #expect(parse("transporte diciembre").monthStart == month(2025, 12))
+        #expect(parse("transporte octubre 2024").monthStart == month(2024, 10))
+        #expect(parse("gastos del mes pasado").monthStart == month(2026, 10))
+    }
+
+    @Test func leftoverWordsStayAsTextAsSaid() {
+        let q = parse("gastos de Uber en octubre")
+        #expect(q.type == .expense && q.categoryId == nil && q.text == "Uber")
+    }
+
+    @Test func unknownTermIsUntouched() {
+        #expect(parse("Encinas") == .init(text: "Encinas"))
+    }
+
+    @Test func typeNarrowsCategories() {
+        #expect(parse("ingresos salario").categoryId == "sal")
+        #expect(parse("gastos salario").categoryId == nil)
+    }
+}

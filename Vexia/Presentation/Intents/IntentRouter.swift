@@ -3,7 +3,7 @@ import SwiftUI
 /// Hands requests from Siri/Shortcuts to the UI. Intents may run before the app has a UI
 /// (cold launch) or while it's locked, so requests wait here until `MainTabView` takes them.
 @Observable final class IntentRouter {
-    nonisolated enum Section: String, CaseIterable, Sendable { case dashboard, transactions, investments, budgets }
+    nonisolated enum Section: String, CaseIterable, Sendable { case dashboard, transactions, investments, budgets, rates, assistant }
 
     enum Request: Equatable {
         case open(Section)

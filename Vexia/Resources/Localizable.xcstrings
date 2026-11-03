@@ -21,60 +21,127 @@
         }
       }
     },
+    "—": {
+      "shouldTranslate": false
+    },
+    "¡Listo!": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done!"
+          }
+        }
+      }
+    },
+    "¿Cerrar sesión?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out?"
+          }
+        }
+      }
+    },
+    "¿Cuánto puedo ahorrar este mes?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How much can I save this month?"
+          }
+        }
+      }
+    },
+    "¿Eliminar transacción?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete transaction?"
+          }
+        }
+      }
+    },
+    "¿En qué gasto más?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do I spend the most on?"
+          }
+        }
+      }
+    },
+    "¿No tienes cuenta? Regístrate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't have an account? Sign up"
+          }
+        }
+      }
+    },
+    "¿Olvidaste tu contraseña?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot your password?"
+          }
+        }
+      }
+    },
+    "¿Qué gasto o ingreso quieres registrar?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What expense or income do you want to log?"
+          }
+        }
+      }
+    },
+    "¿Qué quieres buscar en Vexia?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do you want to search for in Vexia?"
+          }
+        }
+      }
+    },
+    "¿Registro %@?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log %@?"
+          }
+        }
+      }
+    },
+    "“%@”": {
+      "shouldTranslate": false
+    },
+    "“Gasté 50 en almuerzo”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“I spent 50 on lunch”"
+          }
+        }
+      }
+    },
+    "(%@)": {
+      "shouldTranslate": false
+    },
     "#%@": {
       "shouldTranslate": false
-    },
-    "$00.000,00": {
-      "shouldTranslate": false
-    },
-    "%@ %@": {
-      "shouldTranslate": false
-    },
-    "%@ %@ este mes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ %@ this month"
-          }
-        }
-      }
-    },
-    "%@ / %@": {
-      "shouldTranslate": false
-    },
-    "%@ @ %@": {
-      "shouldTranslate": false
-    },
-    "%@ fue el %@ de tus gastos. ¿Armamos un presupuesto?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ was %2$@ of your spending. Want to build a budget?"
-          }
-        }
-      }
-    },
-    "%@ por dólar": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ per dollar"
-          }
-        }
-      }
-    },
-    "%@ va con %@ de ahorro": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@: %2$@ saved"
-          }
-        }
-      }
     },
     "%@ · %@": {
       "shouldTranslate": false
@@ -119,6 +186,105 @@
         }
       }
     },
+    "%@ @ %@": {
+      "shouldTranslate": false
+    },
+    "%@ / %@": {
+      "shouldTranslate": false
+    },
+    "%@ %@": {
+      "shouldTranslate": false
+    },
+    "%@ %@ este mes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@ this month"
+          }
+        }
+      }
+    },
+    "%@ fue el %@ de tus gastos. ¿Armamos un presupuesto?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ was %2$@ of your spending. Want to build a budget?"
+          }
+        }
+      }
+    },
+    "%@ gastaste %@ en %@, %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ you spent %2$@ on %3$@, %4$@."
+          }
+        }
+      }
+    },
+    "%@ gastaste %@ en %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ you spent %2$@ across %3$@."
+          }
+        }
+      }
+    },
+    "%@ no registraste gastos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ you had no expenses."
+          }
+        }
+      }
+    },
+    "%@ no tienes gastos en %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ you have no expenses in %2$@."
+          }
+        }
+      }
+    },
+    "%@ por dólar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ per dollar"
+          }
+        }
+      }
+    },
+    "%@ va con %@ de ahorro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@ saved"
+          }
+        }
+      }
+    },
+    "%@: gastaste más de lo que ingresaste": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: you spent more than you earned"
+          }
+        }
+      }
+    },
     "%@%@": {
       "shouldTranslate": false
     },
@@ -155,16 +321,6 @@
         }
       }
     },
-    "%@: gastaste más de lo que ingresaste": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: you spent more than you earned"
-          }
-        }
-      }
-    },
     "%lld": {
       "localizations": {
         "en": {
@@ -195,16 +351,32 @@
         }
       }
     },
-    "(%@)": {
+    "%lld movimientos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld transactions"
+          }
+        }
+      }
+    },
+    "→ %@": {
+      "shouldTranslate": false
+    },
+    "≈ %@": {
+      "shouldTranslate": false
+    },
+    "$00.000,00": {
       "shouldTranslate": false
     },
     "0": {
       "shouldTranslate": false
     },
-    "0%": {
+    "0,00": {
       "shouldTranslate": false
     },
-    "0,00": {
+    "0%": {
       "shouldTranslate": false
     },
     "1 dólar equivale a": {
@@ -227,32 +399,23 @@
         }
       }
     },
-    "API base URL": {
+    "1 movimiento": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "API base URL"
+            "value": "1 transaction"
           }
         }
       }
     },
-    "API key LLM en la nube": {
+    "a %@": {
+      "comment": "Sale price, as in 'at $10'",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cloud LLM API key"
-          }
-        }
-      }
-    },
-    "AUTOMÁTICA": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMATIC"
+            "value": "at %@"
           }
         }
       }
@@ -263,6 +426,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open section"
+          }
+        }
+      }
+    },
+    "acción": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stock"
+          }
+        }
+      }
+    },
+    "Acción": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stock"
+          }
+        }
+      }
+    },
+    "acciones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stocks"
           }
         }
       }
@@ -283,16 +476,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stocks or crypto"
-          }
-        }
-      }
-    },
-    "Acción": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stock"
           }
         }
       }
@@ -387,6 +570,16 @@
         }
       }
     },
+    "agrega la API key en Ajustes → Inteligencia artificial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "add the API key in Settings → Artificial intelligence"
+          }
+        }
+      }
+    },
     "Agregar": {
       "localizations": {
         "en": {
@@ -433,6 +626,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rental income"
+          }
+        }
+      }
+    },
+    "Añadir": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        }
+      }
+    },
+    "Añadir etiqueta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add tag"
+          }
+        }
+      }
+    },
+    "Añadir nota (opcional)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add note (optional)"
           }
         }
       }
@@ -487,6 +710,26 @@
         }
       }
     },
+    "API base URL": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API base URL"
+          }
+        }
+      }
+    },
+    "API key LLM en la nube": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud LLM API key"
+          }
+        }
+      }
+    },
     "Apple Intelligence": {
       "localizations": {
         "en": {
@@ -517,6 +760,36 @@
         }
       }
     },
+    "Asistente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assistant"
+          }
+        }
+      }
+    },
+    "Aún no has vendido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You haven't sold anything yet"
+          }
+        }
+      }
+    },
+    "AUTOMÁTICA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AUTOMATIC"
+          }
+        }
+      }
+    },
     "Ayer": {
       "localizations": {
         "en": {
@@ -533,46 +806,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Help me create a monthly budget"
-          }
-        }
-      }
-    },
-    "Añadir": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add"
-          }
-        }
-      }
-    },
-    "Añadir etiqueta": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add tag"
-          }
-        }
-      }
-    },
-    "Añadir nota (opcional)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add note (optional)"
-          }
-        }
-      }
-    },
-    "Aún no has vendido": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You haven't sold anything yet"
           }
         }
       }
@@ -607,22 +840,22 @@
         }
       }
     },
-    "Boliviano": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boliviano"
-          }
-        }
-      }
-    },
     "Bolívar": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Bolívar"
+          }
+        }
+      }
+    },
+    "Boliviano": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boliviano"
           }
         }
       }
@@ -693,26 +926,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Search sector"
-          }
-        }
-      }
-    },
-    "COMPRA": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "BUY"
-          }
-        }
-      }
-    },
-    "CON TUS DATOS DE %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "WITH YOUR %@ DATA"
           }
         }
       }
@@ -807,6 +1020,16 @@
         }
       }
     },
+    "categoría": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "category"
+          }
+        }
+      }
+    },
     "Categoría": {
       "localizations": {
         "en": {
@@ -837,12 +1060,32 @@
         }
       }
     },
+    "chat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chat"
+          }
+        }
+      }
+    },
     "Claro": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Light"
+          }
+        }
+      }
+    },
+    "código": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "code"
           }
         }
       }
@@ -883,6 +1126,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Buy"
+          }
+        }
+      }
+    },
+    "COMPRA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BUY"
           }
         }
       }
@@ -947,6 +1200,16 @@
         }
       }
     },
+    "Con la tasa del día recibirías %@. Diferencia: %@ más.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At today's rate you'd get %@. That's %@ more."
+          }
+        }
+      }
+    },
     "Con la tasa del día recibirías %@. Diferencia: %@ menos.": {
       "localizations": {
         "en": {
@@ -957,12 +1220,12 @@
         }
       }
     },
-    "Con la tasa del día recibirías %@. Diferencia: %@ más.": {
+    "CON TUS DATOS DE %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "At today's rate you'd get %@. That's %@ more."
+            "value": "WITH YOUR %@ DATA"
           }
         }
       }
@@ -1023,6 +1286,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Checked just now"
+          }
+        }
+      }
+    },
+    "Consultar gastos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check spending"
           }
         }
       }
@@ -1117,6 +1390,17 @@
         }
       }
     },
+    "costo %@": {
+      "comment": "Cost basis",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cost %@"
+          }
+        }
+      }
+    },
     "Crear con Vexia": {
       "localizations": {
         "en": {
@@ -1157,42 +1441,22 @@
         }
       }
     },
+    "cripto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "crypto"
+          }
+        }
+      }
+    },
     "Cripto": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Crypto"
-          }
-        }
-      }
-    },
-    "Cuenta": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Account"
-          }
-        }
-      }
-    },
-    "Cuentas": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accounts"
-          }
-        }
-      }
-    },
-    "Cumplimiento %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adherence %@"
           }
         }
       }
@@ -1217,12 +1481,82 @@
         }
       }
     },
+    "cuenta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "account"
+          }
+        }
+      }
+    },
+    "Cuenta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "cuenta destino": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "destination account"
+          }
+        }
+      }
+    },
+    "Cuentas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accounts"
+          }
+        }
+      }
+    },
+    "Cumplimiento %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adherence %@"
+          }
+        }
+      }
+    },
+    "dashboard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dashboard"
+          }
+        }
+      }
+    },
     "Datos personales": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Personal info"
+          }
+        }
+      }
+    },
+    "de %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of %@"
           }
         }
       }
@@ -1237,6 +1571,16 @@
         }
       }
     },
+    "Del día · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's · %@"
+          }
+        }
+      }
+    },
     "Del día (fuente externa)": {
       "localizations": {
         "en": {
@@ -1247,12 +1591,12 @@
         }
       }
     },
-    "Del día · %@": {
+    "demasiadas solicitudes, intenta en unos segundos": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Today's · %@"
+            "value": "too many requests, try again in a few seconds"
           }
         }
       }
@@ -1307,6 +1651,16 @@
         }
       }
     },
+    "Dice cuánto gastaste hoy, esta semana o este mes, en total o en una categoría.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tells you how much you spent today, this week or this month, in total or in a category."
+          }
+        }
+      }
+    },
     "Dictar con voz": {
       "localizations": {
         "en": {
@@ -1323,6 +1677,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Available"
+          }
+        }
+      }
+    },
+    "dólar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dollar"
           }
         }
       }
@@ -1407,6 +1771,86 @@
         }
       }
     },
+    "el mes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the month"
+          }
+        }
+      }
+    },
+    "el mes anterior": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the previous month"
+          }
+        }
+      }
+    },
+    "el mes pasado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "last month"
+          }
+        }
+      }
+    },
+    "El mes pasado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last month"
+          }
+        }
+      }
+    },
+    "el modelo de Apple en el dispositivo no pudo procesar la solicitud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the on-device Apple model couldn't process the request"
+          }
+        }
+      }
+    },
+    "el modelo on-device no procesa imágenes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the on-device model doesn't process images"
+          }
+        }
+      }
+    },
+    "el monto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the amount"
+          }
+        }
+      }
+    },
+    "El monto debe ser mayor a 0": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount must be greater than 0"
+          }
+        }
+      }
+    },
     "El PIN debe tener 4 a 6 dígitos": {
       "localizations": {
         "en": {
@@ -1427,12 +1871,12 @@
         }
       }
     },
-    "El monto debe ser mayor a 0": {
+    "el servicio de IA no responde (%lld)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount must be greater than 0"
+            "value": "the AI service isn't responding (%lld)"
           }
         }
       }
@@ -1637,6 +2081,16 @@
         }
       }
     },
+    "Escríbelo tú, en segundos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type it yourself, in seconds"
+          }
+        }
+      }
+    },
     "Escribir en %@": {
       "localizations": {
         "en": {
@@ -1653,16 +2107,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Type in dollars"
-          }
-        }
-      }
-    },
-    "Escríbelo tú, en segundos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type it yourself, in seconds"
           }
         }
       }
@@ -1687,6 +2131,26 @@
         }
       }
     },
+    "esta semana": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "this week"
+          }
+        }
+      }
+    },
+    "Esta semana": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This week"
+          }
+        }
+      }
+    },
     "Estable · 0%": {
       "localizations": {
         "en": {
@@ -1703,6 +2167,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "These conversions stay fixed at today's rate."
+          }
+        }
+      }
+    },
+    "este mes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "this month"
           }
         }
       }
@@ -1887,12 +2361,32 @@
         }
       }
     },
+    "gastos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "expenses"
+          }
+        }
+      }
+    },
     "Gastos": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Expenses"
+          }
+        }
+      }
+    },
+    "Gastos de ${period} en ${category}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expenses for ${period} in ${category}"
           }
         }
       }
@@ -2077,6 +2571,16 @@
         }
       }
     },
+    "hoy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "today"
+          }
+        }
+      }
+    },
     "Hoy": {
       "localizations": {
         "en": {
@@ -2207,6 +2711,16 @@
         }
       }
     },
+    "ingresos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "income"
+          }
+        }
+      }
+    },
     "Ingresos": {
       "localizations": {
         "en": {
@@ -2217,12 +2731,12 @@
         }
       }
     },
-    "Inicia sesión en Vexia para registrar movimientos.": {
+    "Inicia sesión en Vexia para usarla con Siri.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to Vexia to log transactions."
+            "value": "Sign in to Vexia to use it with Siri."
           }
         }
       }
@@ -2307,6 +2821,16 @@
         }
       }
     },
+    "la categoría": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the category"
+          }
+        }
+      }
+    },
     "La contraseña debe tener al menos 8 caracteres": {
       "localizations": {
         "en": {
@@ -2317,12 +2841,42 @@
         }
       }
     },
+    "la cuenta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the account"
+          }
+        }
+      }
+    },
+    "la cuenta destino": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the destination account"
+          }
+        }
+      }
+    },
     "La que me dieron": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "The rate I got"
+          }
+        }
+      }
+    },
+    "la semana": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the week"
           }
         }
       }
@@ -2387,12 +2941,12 @@
         }
       }
     },
-    "MANTENER": {
+    "Lo más alto fue %@, con %@.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "HOLD"
+            "value": "The biggest was %1$@, at %2$@."
           }
         }
       }
@@ -2407,6 +2961,16 @@
         }
       }
     },
+    "MANTENER": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HOLD"
+          }
+        }
+      }
+    },
     "Manual": {
       "localizations": {
         "en": {
@@ -2417,12 +2981,42 @@
         }
       }
     },
+    "Más": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        }
+      }
+    },
+    "Más opciones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More options"
+          }
+        }
+      }
+    },
     "Materiales": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Materials"
+          }
+        }
+      }
+    },
+    "Máx": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max"
           }
         }
       }
@@ -2487,6 +3081,16 @@
         }
       }
     },
+    "mes pasado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "last month"
+          }
+        }
+      }
+    },
     "Mes siguiente": {
       "localizations": {
         "en": {
@@ -2507,6 +3111,17 @@
         }
       }
     },
+    "mil": {
+      "comment": "Thousands suffix in compact amounts: 17,2 mil",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "K"
+          }
+        }
+      }
+    },
     "Minería y materiales": {
       "localizations": {
         "en": {
@@ -2523,6 +3138,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "My categories"
+          }
+        }
+      }
+    },
+    "monto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "amount"
           }
         }
       }
@@ -2593,36 +3218,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Transactions"
-          }
-        }
-      }
-    },
-    "Más": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "More"
-          }
-        }
-      }
-    },
-    "Más opciones": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "More options"
-          }
-        }
-      }
-    },
-    "Máx": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max"
           }
         }
       }
@@ -2867,16 +3462,6 @@
         }
       }
     },
-    "Nuevo PIN (4-6 dígitos)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New PIN (4-6 digits)"
-          }
-        }
-      }
-    },
     "Nuevo gasto": {
       "localizations": {
         "en": {
@@ -2893,6 +3478,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "New income"
+          }
+        }
+      }
+    },
+    "Nuevo PIN (4-6 dígitos)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New PIN (4-6 digits)"
+          }
+        }
+      }
+    },
+    "o": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "or"
           }
         }
       }
@@ -2917,22 +3522,22 @@
         }
       }
     },
-    "OK": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
-          }
-        }
-      }
-    },
     "Ocultar saldos": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Hide balances"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
           }
         }
       }
@@ -2947,22 +3552,22 @@
         }
       }
     },
-    "Operaciones": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Operations"
-          }
-        }
-      }
-    },
     "Operación": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Operation"
+          }
+        }
+      }
+    },
+    "Operaciones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Operations"
           }
         }
       }
@@ -3017,46 +3622,6 @@
         }
       }
     },
-    "PIN": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PIN"
-          }
-        }
-      }
-    },
-    "PIN guardado": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PIN saved"
-          }
-        }
-      }
-    },
-    "PIN incorrecto": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incorrect PIN"
-          }
-        }
-      }
-    },
-    "PLANIFICA CON IA": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PLAN WITH AI"
-          }
-        }
-      }
-    },
     "Pagar con": {
       "localizations": {
         "en": {
@@ -3103,6 +3668,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Profile and settings"
+          }
+        }
+      }
+    },
+    "Periodo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period"
           }
         }
       }
@@ -3157,12 +3732,32 @@
         }
       }
     },
-    "Plan Pro": {
+    "PIN": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pro plan"
+            "value": "PIN"
+          }
+        }
+      }
+    },
+    "PIN guardado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PIN saved"
+          }
+        }
+      }
+    },
+    "PIN incorrecto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incorrect PIN"
           }
         }
       }
@@ -3173,6 +3768,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Free plan"
+          }
+        }
+      }
+    },
+    "Plan Pro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro plan"
+          }
+        }
+      }
+    },
+    "PLANIFICA CON IA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PLAN WITH AI"
           }
         }
       }
@@ -3197,12 +3812,32 @@
         }
       }
     },
+    "portafolio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "portfolio"
+          }
+        }
+      }
+    },
     "Portafolio": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Portfolio"
+          }
+        }
+      }
+    },
+    "precio actual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "current price"
           }
         }
       }
@@ -3257,6 +3892,16 @@
         }
       }
     },
+    "presupuesto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "budget"
+          }
+        }
+      }
+    },
     "Presupuesto, análisis y metas": {
       "localizations": {
         "en": {
@@ -3303,16 +3948,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Biweekly"
-          }
-        }
-      }
-    },
-    "REFERENCIAS": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "REFERENCES"
           }
         }
       }
@@ -3387,6 +4022,16 @@
         }
       }
     },
+    "reconocimiento de voz no disponible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "speech recognition unavailable"
+          }
+        }
+      }
+    },
     "Recurrente": {
       "localizations": {
         "en": {
@@ -3403,6 +4048,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recurring · Tags"
+          }
+        }
+      }
+    },
+    "REFERENCIAS": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REFERENCES"
           }
         }
       }
@@ -3537,22 +4192,22 @@
         }
       }
     },
+    "resumen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "overview"
+          }
+        }
+      }
+    },
     "Revisa tu correo": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Check your email"
-          }
-        }
-      }
-    },
-    "SOLO ESTE MOVIMIENTO": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "THIS TRANSACTION ONLY"
           }
         }
       }
@@ -3727,12 +4382,22 @@
         }
       }
     },
-    "Sin conexión con el servidor": {
+    "Símbolo (AAPL, MSFT…)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Can't reach the server"
+            "value": "Symbol (AAPL, MSFT…)"
+          }
+        }
+      }
+    },
+    "Símbolo (BTC, ETH…)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Symbol (BTC, ETH…)"
           }
         }
       }
@@ -3743,6 +4408,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Offline · data from %@"
+          }
+        }
+      }
+    },
+    "Sin conexión con el servidor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't reach the server"
           }
         }
       }
@@ -3793,6 +4468,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No price"
+          }
+        }
+      }
+    },
+    "sin proveedores": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no providers"
           }
         }
       }
@@ -3907,6 +4592,16 @@
         }
       }
     },
+    "SOLO ESTE MOVIMIENTO": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THIS TRANSACTION ONLY"
+          }
+        }
+      }
+    },
     "Solo tienes %@": {
       "localizations": {
         "en": {
@@ -3977,36 +4672,6 @@
         }
       }
     },
-    "Símbolo (AAPL, MSFT…)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Symbol (AAPL, MSFT…)"
-          }
-        }
-      }
-    },
-    "Símbolo (BTC, ETH…)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Symbol (BTC, ETH…)"
-          }
-        }
-      }
-    },
-    "TC %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rate %@"
-          }
-        }
-      }
-    },
     "También se guardará en": {
       "localizations": {
         "en": {
@@ -4037,6 +4702,16 @@
         }
       }
     },
+    "Tasa %@ → %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate %@ → %@"
+          }
+        }
+      }
+    },
     "Tasa %@ guardada": {
       "localizations": {
         "en": {
@@ -4057,16 +4732,6 @@
         }
       }
     },
-    "Tasa %@ → %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rate %@ → %@"
-          }
-        }
-      }
-    },
     "Tasa a usar": {
       "localizations": {
         "en": {
@@ -4083,6 +4748,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rate used"
+          }
+        }
+      }
+    },
+    "Tasas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rates"
           }
         }
       }
@@ -4117,6 +4792,16 @@
         }
       }
     },
+    "tasas de cambio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "exchange rates"
+          }
+        }
+      }
+    },
     "Tasas del día": {
       "localizations": {
         "en": {
@@ -4133,6 +4818,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rates saved at the time of the transaction."
+          }
+        }
+      }
+    },
+    "TC %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate %@"
           }
         }
       }
@@ -4193,6 +4888,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Type"
+          }
+        }
+      }
+    },
+    "tipo de cambio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "exchange rate"
           }
         }
       }
@@ -4283,6 +4988,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Freelance"
+          }
+        }
+      }
+    },
+    "transacciones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "transactions"
           }
         }
       }
@@ -4407,6 +5122,56 @@
         }
       }
     },
+    "un gasto de %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "an expense of %1$@ in %2$@, account %3$@"
+          }
+        }
+      }
+    },
+    "un gasto de %@ por %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "an expense of %1$@ for %2$@ in %3$@, account %4$@"
+          }
+        }
+      }
+    },
+    "un ingreso de %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "income of %1$@ in %2$@, account %3$@"
+          }
+        }
+      }
+    },
+    "un ingreso de %@ por %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "income of %1$@ for %2$@ in %3$@, account %4$@"
+          }
+        }
+      }
+    },
+    "una transferencia de %@ de %@ a %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a transfer of %1$@ from %2$@ to %3$@"
+          }
+        }
+      }
+    },
     "Usada en tus movimientos": {
       "localizations": {
         "en": {
@@ -4437,16 +5202,6 @@
         }
       }
     },
-    "VENTA": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SELL"
-          }
-        }
-      }
-    },
     "Valor actual": {
       "localizations": {
         "en": {
@@ -4457,22 +5212,22 @@
         }
       }
     },
-    "Valor actual %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current value %@"
-          }
-        }
-      }
-    },
     "Valor actual · %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Current value · %@"
+          }
+        }
+      }
+    },
+    "Valor actual %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current value %@"
           }
         }
       }
@@ -4513,6 +5268,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sell"
+          }
+        }
+      }
+    },
+    "VENTA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELL"
           }
         }
       }
@@ -4577,7 +5342,7 @@
         }
       }
     },
-    "Vexia IA": {
+    "Vexia AI": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4617,6 +5382,16 @@
         }
       }
     },
+    "Vexia IA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vexia AI"
+          }
+        }
+      }
+    },
     "Vexia usa el LLM en la nube (texto + recibos) y, si falla, Apple Intelligence en el dispositivo para texto.": {
       "localizations": {
         "en": {
@@ -4633,6 +5408,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Housing"
+          }
+        }
+      }
+    },
+    "Volátil": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volatile"
           }
         }
       }
@@ -4657,16 +5442,6 @@
         }
       }
     },
-    "Volátil": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Volatile"
-          }
-        }
-      }
-    },
     "Vuelve a iniciar sesión para continuar.": {
       "localizations": {
         "en": {
@@ -4676,501 +5451,6 @@
           }
         }
       }
-    },
-    "a %@": {
-      "comment": "Sale price, as in 'at $10'",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "at %@"
-          }
-        }
-      }
-    },
-    "acciones": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "stocks"
-          }
-        }
-      }
-    },
-    "acción": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "stock"
-          }
-        }
-      }
-    },
-    "agrega la API key en Ajustes → Inteligencia artificial": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "add the API key in Settings → Artificial intelligence"
-          }
-        }
-      }
-    },
-    "categoría": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "category"
-          }
-        }
-      }
-    },
-    "costo %@": {
-      "comment": "Cost basis",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "cost %@"
-          }
-        }
-      }
-    },
-    "cripto": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "crypto"
-          }
-        }
-      }
-    },
-    "cuenta": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "account"
-          }
-        }
-      }
-    },
-    "cuenta destino": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "destination account"
-          }
-        }
-      }
-    },
-    "código": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "code"
-          }
-        }
-      }
-    },
-    "dashboard": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "dashboard"
-          }
-        }
-      }
-    },
-    "de %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "of %@"
-          }
-        }
-      }
-    },
-    "demasiadas solicitudes, intenta en unos segundos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "too many requests, try again in a few seconds"
-          }
-        }
-      }
-    },
-    "el modelo de Apple en el dispositivo no pudo procesar la solicitud": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the on-device Apple model couldn't process the request"
-          }
-        }
-      }
-    },
-    "el modelo on-device no procesa imágenes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the on-device model doesn't process images"
-          }
-        }
-      }
-    },
-    "el monto": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the amount"
-          }
-        }
-      }
-    },
-    "el servicio de IA no responde (%lld)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the AI service isn't responding (%lld)"
-          }
-        }
-      }
-    },
-    "gastos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "expenses"
-          }
-        }
-      }
-    },
-    "ingresos": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "income"
-          }
-        }
-      }
-    },
-    "la categoría": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the category"
-          }
-        }
-      }
-    },
-    "la cuenta": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the account"
-          }
-        }
-      }
-    },
-    "la cuenta destino": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "the destination account"
-          }
-        }
-      }
-    },
-    "mil": {
-      "comment": "Thousands suffix in compact amounts: 17,2 mil",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "K"
-          }
-        }
-      }
-    },
-    "monto": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "amount"
-          }
-        }
-      }
-    },
-    "o": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "or"
-          }
-        }
-      }
-    },
-    "portafolio": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "portfolio"
-          }
-        }
-      }
-    },
-    "precio actual": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "current price"
-          }
-        }
-      }
-    },
-    "presupuesto": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "budget"
-          }
-        }
-      }
-    },
-    "reconocimiento de voz no disponible": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "speech recognition unavailable"
-          }
-        }
-      }
-    },
-    "resumen": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "overview"
-          }
-        }
-      }
-    },
-    "sin proveedores": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "no providers"
-          }
-        }
-      }
-    },
-    "transacciones": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "transactions"
-          }
-        }
-      }
-    },
-    "un gasto de %@ en %@, cuenta %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "an expense of %1$@ in %2$@, account %3$@"
-          }
-        }
-      }
-    },
-    "un gasto de %@ por %@ en %@, cuenta %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "an expense of %1$@ for %2$@ in %3$@, account %4$@"
-          }
-        }
-      }
-    },
-    "un ingreso de %@ en %@, cuenta %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "income of %1$@ in %2$@, account %3$@"
-          }
-        }
-      }
-    },
-    "un ingreso de %@ por %@ en %@, cuenta %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "income of %1$@ for %2$@ in %3$@, account %4$@"
-          }
-        }
-      }
-    },
-    "una transferencia de %@ de %@ a %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "a transfer of %1$@ from %2$@ to %3$@"
-          }
-        }
-      }
-    },
-    "¡Listo!": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done!"
-          }
-        }
-      }
-    },
-    "¿Cerrar sesión?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign out?"
-          }
-        }
-      }
-    },
-    "¿Cuánto puedo ahorrar este mes?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "How much can I save this month?"
-          }
-        }
-      }
-    },
-    "¿Eliminar transacción?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete transaction?"
-          }
-        }
-      }
-    },
-    "¿En qué gasto más?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What do I spend the most on?"
-          }
-        }
-      }
-    },
-    "¿No tienes cuenta? Regístrate": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Don't have an account? Sign up"
-          }
-        }
-      }
-    },
-    "¿Olvidaste tu contraseña?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Forgot your password?"
-          }
-        }
-      }
-    },
-    "¿Qué gasto o ingreso quieres registrar?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What expense or income do you want to log?"
-          }
-        }
-      }
-    },
-    "¿Qué quieres buscar en Vexia?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What do you want to search for in Vexia?"
-          }
-        }
-      }
-    },
-    "¿Registro %@?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Log %@?"
-          }
-        }
-      }
-    },
-    "—": {
-      "shouldTranslate": false
-    },
-    "“%@”": {
-      "shouldTranslate": false
-    },
-    "“Gasté 50 en almuerzo”": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "“I spent 50 on lunch”"
-          }
-        }
-      }
-    },
-    "→ %@": {
-      "shouldTranslate": false
-    },
-    "≈ %@": {
-      "shouldTranslate": false
     }
   },
   "version": "1.0"

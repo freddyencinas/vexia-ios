@@ -47,6 +47,37 @@
         }
       }
     },
+    "Cuánto gasté en ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "How much did I spend in ${applicationName}",
+              "My expenses in ${applicationName}",
+              "How much did I spend ${period} in ${applicationName}",
+              "Expenses for ${period} in ${applicationName}",
+              "How much did I spend on ${category} in ${applicationName}",
+              "${category} expenses in ${applicationName}"
+            ]
+          }
+        },
+        "es": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Cuánto gasté en ${applicationName}",
+              "Mis gastos en ${applicationName}",
+              "Cuánto gasté ${period} en ${applicationName}",
+              "Gastos de ${period} en ${applicationName}",
+              "Cuánto gasté en ${category} en ${applicationName}",
+              "Gastos de ${category} en ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
     "Registra un gasto en ${applicationName}": {
       "extractionState": "extracted_with_value",
       "localizations": {

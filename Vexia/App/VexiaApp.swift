@@ -18,7 +18,8 @@ struct VexiaApp: App {
         _intents = State(initialValue: router)
         AppDependencyManager.shared.add(dependency: c)
         AppDependencyManager.shared.add(dependency: router)
-        // Teaches Siri the section names used inside "Abre ${target} en Vexia".
+        // Also on background launches (Siri): phrases with category/section names need them registered
+        // before the first question, not only after the main screen appears.
         VexiaShortcuts.updateAppShortcutParameters()
     }
 

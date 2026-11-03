@@ -59,6 +59,7 @@ final class AppContainer {
     var deleteTransaction: DeleteTransactionUseCase { .init(repo: transactions) }
     var loadDashboard: LoadDashboardUseCase { .init(repo: dashboard) }
     var classifyTransaction: ClassifyTransactionUseCase { .init(llm: llm, prompts: prompts) }
+    var consultSpending: ConsultSpendingUseCase { .init(dashboard: dashboard, catalog: catalog) }
     var proposeTransaction: ProposeTransactionUseCase {
         .init(classify: classifyTransaction, catalog: catalog, usage: usage.cached, language: settings.language)
     }

@@ -26,14 +26,14 @@ struct RegisterTransactionIntent: AppIntent {
     @Dependency private var router: IntentRouter
 
     @MainActor func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
-        log.info("register: started")
+        log.notice("register: started")
         guard container.tokens.hasValidTokens else { log.error("register: no session"); throw VexiaIntentError.signedOut }
         let proposal: ProposeTransactionUseCase.Proposal
         do { proposal = try await container.proposeTransaction(text) } catch {
             log.error("register: classify failed \(error.localizedDescription, privacy: .public)")
             throw VexiaIntentError.failed(error.localizedDescription)
         }
-        log.info("register: type=\(proposal.draft.type.rawValue, privacy: .public) missing=\(proposal.missing.count) isTransaction=\(proposal.isTransaction)")
+        log.notice("register: type=\(proposal.draft.type.rawValue, privacy: .public) missing=\(proposal.missing.count) isTransaction=\(proposal.isTransaction)")
         guard proposal.isTransaction else { throw VexiaIntentError.notAMovement }
 
         guard proposal.missing.isEmpty else {
@@ -48,7 +48,7 @@ struct RegisterTransactionIntent: AppIntent {
             log.error("register: save failed \(error.localizedDescription, privacy: .public)")
             throw VexiaIntentError.failed(error.localizedDescription)
         }
-        log.info("register: saved")
+        log.notice("register: saved")
         router.send(.refresh)
         return .result(dialog: IntentDialog(SiriTransactionText.done(proposal)), view: SiriTransactionCard(proposal: proposal))
     }
@@ -66,7 +66,7 @@ struct SearchInVexiaIntent: ShowInAppSearchResultsIntent {
     @MainActor func perform() async throws -> some IntentResult {
         let term = criteria.term.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !term.isEmpty else { throw $criteria.needsValueError("¿Qué quieres buscar en Vexia?") }
-        log.info("search: started")
+        log.notice("search: started")
         router.send(.search(term))
         return .result()
     }
@@ -90,7 +90,7 @@ nonisolated struct VexiaSectionEntity: AppEntity {
     let id: String
 
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Sección"
-    static let defaultQuery = Query()
+    static let defaultQuery = SectionQuery()
     static let all = IntentRouter.Section.allCases.map { VexiaSectionEntity(id: $0.rawValue) }
 
     var section: IntentRouter.Section { IntentRouter.Section(rawValue: id) ?? .dashboard }
@@ -101,10 +101,12 @@ nonisolated struct VexiaSectionEntity: AppEntity {
         case .transactions: DisplayRepresentation(title: "Movimientos", synonyms: ["transacciones", "gastos", "ingresos"])
         case .investments: DisplayRepresentation(title: "Inversiones", synonyms: ["acciones", "cripto", "portafolio"])
         case .budgets: DisplayRepresentation(title: "Presupuestos", synonyms: ["presupuesto"])
+        case .rates: DisplayRepresentation(title: "Tasas", synonyms: ["tasas de cambio", "tipo de cambio", "dólar"])
+        case .assistant: DisplayRepresentation(title: "Asistente", synonyms: ["Vexia AI", "chat"])
         }
     }
 
-    struct Query: EnumerableEntityQuery {
+    struct SectionQuery: EnumerableEntityQuery {
         func allEntities() async throws -> [VexiaSectionEntity] { VexiaSectionEntity.all }
         func entities(for identifiers: [String]) async throws -> [VexiaSectionEntity] {
             VexiaSectionEntity.all.filter { identifiers.contains($0.id) }
@@ -118,7 +120,7 @@ enum VexiaIntentError: Error, CustomLocalizedStringResourceConvertible {
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
-        case .signedOut: "Inicia sesión en Vexia para registrar movimientos."
+        case .signedOut: "Inicia sesión en Vexia para usarla con Siri."
         case .notAMovement: "No entendí un gasto o ingreso. Prueba con algo como: 50 bolivianos de almuerzo en efectivo."
         case .failed(let reason): "No pude completarlo: \(reason)"
         }
@@ -135,6 +137,14 @@ struct VexiaShortcuts: AppShortcutsProvider {
             "Anota un ingreso en \(.applicationName)",
             "Nuevo movimiento en \(.applicationName)",
         ], shortTitle: "Registrar movimiento", systemImageName: "plus.circle")
+        AppShortcut(intent: ConsultSpendingIntent(), phrases: [
+            "Cuánto gasté en \(.applicationName)",
+            "Mis gastos en \(.applicationName)",
+            "Cuánto gasté \(\.$period) en \(.applicationName)",
+            "Gastos de \(\.$period) en \(.applicationName)",
+            "Cuánto gasté en \(\.$category) en \(.applicationName)",
+            "Gastos de \(\.$category) en \(.applicationName)",
+        ], shortTitle: "Consultar gastos", systemImageName: "chart.pie")
         AppShortcut(intent: SearchInVexiaIntent(), phrases: [
             "Busca en \(.applicationName)",
             "Buscar movimientos en \(.applicationName)",
