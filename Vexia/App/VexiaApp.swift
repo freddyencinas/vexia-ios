@@ -1,21 +1,32 @@
+import AppIntents
 import SwiftUI
 
 @main
 struct VexiaApp: App {
     @State private var container: AppContainer
     @State private var session: SessionViewModel
+    @State private var intents: IntentRouter
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let c = AppContainer()
         _container = State(initialValue: c)
         _session = State(initialValue: SessionViewModel(container: c))
+        // Siri/Shortcuts intents run in this process and share these instances with the UI.
+        // Created here, not read back from @State: a State read in init may not be the installed instance.
+        let router = IntentRouter()
+        _intents = State(initialValue: router)
+        AppDependencyManager.shared.add(dependency: c)
+        AppDependencyManager.shared.add(dependency: router)
+        // Teaches Siri the section names used inside "Abre ${target} en Vexia".
+        VexiaShortcuts.updateAppShortcutParameters()
     }
 
     var body: some Scene {
         WindowGroup {
             RootView(container: container)
                 .environment(session)
+                .environment(intents)
                 .environment(\.container, container)
                 .tint(VexiaColor.brandBlue)
                 .task { await session.start() }

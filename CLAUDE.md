@@ -79,3 +79,4 @@ Core          (APIClient, JSON, Keychain, Formatters, Design tokens, AppContaine
 - **Info.plist generado** (`INFOPLIST_KEY_*` en el pbxproj): no admite keys custom como `GIDClientID`; el client ID de Google va en `AppConfig.googleIOSClientID`.
 - `/crypto/pnl` devuelve IDs (UUID) de exchange en vez de nombres; el ViewModel los filtra. Fix real pendiente en backend.
 - Tab bar se minimiza al hacer scroll: en Maestro, relanzar la app antes de tocar tabs.
+- **Siri / App Intents** (`Presentation/Intents/`): no existe dominio App Schema de finanzas (iOS 27.2), así que registrar es un intent propio vía frases de App Shortcut (`VexiaShortcuts`); buscar/abrir usan `.system.searchInApp` / `.system.open` (este exige `AppEntity`). Los intents piden a `IntentRouter` y `MainTabView` lo consume solo con sesión `.authenticated`. Frases en `Resources/AppShortcuts.xcstrings` (deben llevar `${applicationName}`); `perform()` va `@MainActor`.

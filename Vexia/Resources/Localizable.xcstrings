@@ -257,6 +257,16 @@
         }
       }
     },
+    "Abrir sección": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open section"
+          }
+        }
+      }
+    },
     "Acciones": {
       "localizations": {
         "en": {
@@ -657,6 +667,16 @@
         }
       }
     },
+    "Buscar movimientos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search transactions"
+          }
+        }
+      }
+    },
     "Buscar por nombre, categoría o monto": {
       "localizations": {
         "en": {
@@ -833,6 +853,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fee"
+          }
+        }
+      }
+    },
+    "Completa el movimiento en Vexia.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish the transaction in Vexia."
           }
         }
       }
@@ -2187,6 +2217,16 @@
         }
       }
     },
+    "Inicia sesión en Vexia para registrar movimientos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to Vexia to log transactions."
+          }
+        }
+      }
+    },
     "Iniciar sesión": {
       "localizations": {
         "en": {
@@ -2337,6 +2377,16 @@
         }
       }
     },
+    "Listo, registré %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done, I logged %@."
+          }
+        }
+      }
+    },
     "MANTENER": {
       "localizations": {
         "en": {
@@ -2383,6 +2433,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Top expenses"
+          }
+        }
+      }
+    },
+    "Me faltó %@. Ábrelo en Vexia para completarlo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I’m missing %@. Open it in Vexia to finish."
           }
         }
       }
@@ -2517,6 +2577,16 @@
         }
       }
     },
+    "Movimiento": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transaction"
+          }
+        }
+      }
+    },
     "Movimientos": {
       "localizations": {
         "en": {
@@ -2607,6 +2677,16 @@
         }
       }
     },
+    "No entendí un gasto o ingreso. Prueba con algo como: 50 bolivianos de almuerzo en efectivo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I didn’t catch an expense or income. Try something like: 50 bolivianos for lunch in cash."
+          }
+        }
+      }
+    },
     "No hay precios que actualizar": {
       "localizations": {
         "en": {
@@ -2623,6 +2703,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "No entries in %@. Add one with the + button or check another month."
+          }
+        }
+      }
+    },
+    "No pude completarlo: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I couldn’t finish it: %@"
           }
         }
       }
@@ -3337,6 +3427,16 @@
         }
       }
     },
+    "Registra un gasto, ingreso o transferencia diciendo qué fue, cuánto y de qué cuenta.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log an expense, income or transfer by saying what it was, how much and from which account."
+          }
+        }
+      }
+    },
     "Registra uno con el botón +.": {
       "localizations": {
         "en": {
@@ -3353,6 +3453,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recorded on the transaction"
+          }
+        }
+      }
+    },
+    "Registrar gasto o ingreso": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log expense or income"
+          }
+        }
+      }
+    },
+    "Registrar movimiento": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log transaction"
           }
         }
       }
@@ -3473,6 +3593,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Healthcare"
+          }
+        }
+      }
+    },
+    "Sección": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Section"
           }
         }
       }
@@ -4609,6 +4739,16 @@
         }
       }
     },
+    "cripto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "crypto"
+          }
+        }
+      }
+    },
     "cuenta": {
       "localizations": {
         "en": {
@@ -4635,6 +4775,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "code"
+          }
+        }
+      }
+    },
+    "dashboard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dashboard"
           }
         }
       }
@@ -4679,12 +4829,72 @@
         }
       }
     },
+    "el monto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the amount"
+          }
+        }
+      }
+    },
     "el servicio de IA no responde (%lld)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "the AI service isn't responding (%lld)"
+          }
+        }
+      }
+    },
+    "gastos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "expenses"
+          }
+        }
+      }
+    },
+    "ingresos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "income"
+          }
+        }
+      }
+    },
+    "la categoría": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the category"
+          }
+        }
+      }
+    },
+    "la cuenta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the account"
+          }
+        }
+      }
+    },
+    "la cuenta destino": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the destination account"
           }
         }
       }
@@ -4720,12 +4930,32 @@
         }
       }
     },
+    "portafolio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "portfolio"
+          }
+        }
+      }
+    },
     "precio actual": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "current price"
+          }
+        }
+      }
+    },
+    "presupuesto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "budget"
           }
         }
       }
@@ -4740,12 +4970,82 @@
         }
       }
     },
+    "resumen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "overview"
+          }
+        }
+      }
+    },
     "sin proveedores": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "no providers"
+          }
+        }
+      }
+    },
+    "transacciones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "transactions"
+          }
+        }
+      }
+    },
+    "un gasto de %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "an expense of %1$@ in %2$@, account %3$@"
+          }
+        }
+      }
+    },
+    "un gasto de %@ por %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "an expense of %1$@ for %2$@ in %3$@, account %4$@"
+          }
+        }
+      }
+    },
+    "un ingreso de %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "income of %1$@ in %2$@, account %3$@"
+          }
+        }
+      }
+    },
+    "un ingreso de %@ por %@ en %@, cuenta %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "income of %1$@ for %2$@ in %3$@, account %4$@"
+          }
+        }
+      }
+    },
+    "una transferencia de %@ de %@ a %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a transfer of %1$@ from %2$@ to %3$@"
           }
         }
       }
@@ -4816,6 +5116,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Forgot your password?"
+          }
+        }
+      }
+    },
+    "¿Qué gasto o ingreso quieres registrar?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What expense or income do you want to log?"
+          }
+        }
+      }
+    },
+    "¿Qué quieres buscar en Vexia?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do you want to search for in Vexia?"
+          }
+        }
+      }
+    },
+    "¿Registro %@?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log %@?"
           }
         }
       }

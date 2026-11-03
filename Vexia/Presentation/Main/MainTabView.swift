@@ -6,6 +6,7 @@ import SwiftUI
 struct MainTabView: View {
     let container: AppContainer
     @Environment(SessionViewModel.self) private var session
+    @Environment(IntentRouter.self) private var intents
     @State private var selection: AppTab = .dashboard
     @State private var lastTab: AppTab = .dashboard
     @State private var dashboardVM: DashboardViewModel
@@ -123,6 +124,8 @@ struct MainTabView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(vm: SettingsViewModel(settings: container.settings, biometrics: container.biometrics))
         }
+        .onChange(of: intents.pending, initial: true) { handleIntents() }
+        .onChange(of: session.state) { handleIntents() }
         // Outermost so every sheet above (and the ones tabs present) inherits it.
         .environment(savedBanner)
         .environment(island)
@@ -136,6 +139,25 @@ struct MainTabView: View {
         case .assistant: openAssistant(nil)
         case .investment: selection = .investments; showNewInvestment = true
         }
+    }
+
+    /// Siri/Shortcuts requests. Waits while locked: a sheet would show over the lock screen.
+    private func handleIntents() {
+        guard session.state == .authenticated, !intents.pending.isEmpty else { return }
+        for request in intents.take() {
+            switch request {
+            case .refresh: refreshAfterSave()
+            case .open(let section): selection = tab(for: section)
+            case .search(let term): selection = .transactions; transactionsVM.search(term)
+            case .confirm(let p):
+                showAdd = false; newTransaction = nil; capture = nil
+                later { confirm = ConfirmRequest(draft: p.draft, notes: p.notes, heard: p.heard) }
+            }
+        }
+    }
+
+    private func tab(for section: IntentRouter.Section) -> AppTab {
+        switch section { case .dashboard: .dashboard; case .transactions: .transactions; case .investments: .investments; case .budgets: .budgets }
     }
 
     private func openAssistant(_ message: String?) {

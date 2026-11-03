@@ -59,6 +59,9 @@ final class AppContainer {
     var deleteTransaction: DeleteTransactionUseCase { .init(repo: transactions) }
     var loadDashboard: LoadDashboardUseCase { .init(repo: dashboard) }
     var classifyTransaction: ClassifyTransactionUseCase { .init(llm: llm, prompts: prompts) }
+    var proposeTransaction: ProposeTransactionUseCase {
+        .init(classify: classifyTransaction, catalog: catalog, usage: usage.cached, language: settings.language)
+    }
 }
 
 extension EnvironmentValues {

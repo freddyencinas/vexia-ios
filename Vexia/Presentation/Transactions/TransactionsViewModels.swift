@@ -54,6 +54,8 @@ final class TransactionsListViewModel {
         Task { await reload() }
     }
     func showAllTime() { month = nil; Task { await reload() } }
+    /// Search asked from outside the screen (Siri): the term may match any month.
+    func search(_ term: String) { month = nil; filter.search = term; Task { await reload() } }
 
     private var effectiveFilter: TransactionFilter {
         var f = filter
@@ -128,8 +130,8 @@ final class TransactionsListViewModel {
         }
     }
 
-    func confirmDelete() async {
-        guard let tx = pendingDelete else { return }
+    /// Takes the transaction explicitly: dismissing the dialog clears `pendingDelete` before its button runs.
+    func confirmDelete(_ tx: Transaction) async {
         pendingDelete = nil
         do {
             try await deleteUseCase(id: tx.id)

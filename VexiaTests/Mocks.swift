@@ -43,7 +43,8 @@ final class MockTransactionsRepo: TransactionsRepository {
     func create(_ d: TransactionDraft) async throws -> Transaction { created.append(d); return Fixtures.tx(id: 1) }
     func createTransfer(_ d: TransactionDraft) async throws { transfers.append(d) }
     func update(id: Int, _ d: TransactionDraft) async throws -> Transaction { Fixtures.tx(id: id) }
-    func delete(id: Int) async throws {}
+    private(set) var deleted: [Int] = []
+    func delete(id: Int) async throws { deleted.append(id) }
     func dependencies(id: Int) async throws -> TransactionDependencies { deps }
     func summary(filter: TransactionFilter) async throws -> TransactionSummary { .init(totalIncome: 0, totalExpenses: 0, netAmount: 0, transactionCount: 0) }
 }
@@ -143,7 +144,8 @@ final class MockStocks: InvestmentsRepository, @unchecked Sendable {
     func sales() async throws -> [SaleRecord] { [] }
     func create(_ draft: InvestmentDraft) async throws {}
     func update(id: Int, _ draft: InvestmentDraft) async throws {}
-    func delete(id: Int) async throws {}
+    private(set) var deleted: [Int] = []
+    func delete(id: Int) async throws { deleted.append(id) }
     func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }
 
@@ -155,6 +157,7 @@ final class MockCrypto: CryptoRepository, @unchecked Sendable {
     func sales() async throws -> [SaleRecord] { [] }
     func create(_ draft: InvestmentDraft) async throws {}
     func update(id: Int, _ draft: InvestmentDraft) async throws {}
-    func delete(id: Int) async throws {}
+    private(set) var deleted: [Int] = []
+    func delete(id: Int) async throws { deleted.append(id) }
     func updatePrices() async throws -> PriceUpdateResult { PriceUpdateResult(total: 0, updated: 0) }
 }

@@ -821,3 +821,85 @@ struct AmountMathTests {
         #expect(vm.exchangeLabels(["11111111-1111-1111-1111-111111111111", "nexo", "Binance", "22222222-2222-2222-2222-222222222222"]) == ["Nexo", "Binance"])
     }
 }
+
+@Suite("Siri")
+@MainActor struct SiriTests {
+    private func propose(_ json: String) async throws -> ProposeTransactionUseCase.Proposal {
+        let classify = ClassifyTransactionUseCase(llm: MockLLM(response: json), prompts: MockPrompts())
+        return try await ProposeTransactionUseCase(classify: classify, catalog: MockCatalog(), language: "es")("50 de almuerzo en efectivo")
+    }
+
+    @Test func completeExpenseIsReadyToConfirm() async throws {
+        let p = try await propose(#"{"intent":"expense","form_prefill":{"type":"expense","amount":{"value":50},"category_id":"FOOD","account_from_id":"Efectivo","description":"Almuerzo"}}"#)
+        #expect(p.isTransaction && p.missing.isEmpty)
+        #expect(p.account?.id == "acc2" && p.category?.id == "c-food")
+        let question = String(localized: SiriTransactionText.question(p))
+        #expect(question.contains("Efectivo") && question.contains("50"))
+    }
+
+    @Test func missingFieldsAreReported() async throws {
+        // Account falls back to the favorite; amount and category can't be guessed.
+        let p = try await propose(#"{"intent":"expense","form_prefill":{"type":"expense"}}"#)
+        #expect(p.missing == [.amount, .category])
+    }
+
+    @Test func transferNeedsAnotherAccount() async throws {
+        let ok = try await propose(#"{"intent":"transfer","form_prefill":{"type":"transfer","amount":{"value":100},"account_from_id":"Banco Unión","account_to_id":"Efectivo"}}"#)
+        #expect(ok.missing.isEmpty)
+        let same = try await propose(#"{"intent":"transfer","form_prefill":{"type":"transfer","amount":{"value":100},"account_from_id":"Efectivo","account_to_id":"Efectivo"}}"#)
+        #expect(same.missing == [.destination])
+    }
+
+    @Test func questionIsNotAMovement() async throws {
+        #expect(try await propose(#"{"intent":"query"}"#).isTransaction == false)
+    }
+
+    @Test func routerKeepsLatestNavigationAndOneRefresh() {
+        let r = IntentRouter()
+        r.send(.refresh); r.send(.open(.investments)); r.send(.search("uber")); r.send(.refresh)
+        #expect(r.take() == [.search("uber"), .refresh])
+        #expect(r.take().isEmpty)
+    }
+
+    @Test func sectionEntitiesCoverEveryTab() {
+        #expect(VexiaSectionEntity.all.map(\.section) == IntentRouter.Section.allCases)
+    }
+}
+
+@Suite("Delete transaction")
+@MainActor struct DeleteTransactionTests {
+    @Test func deletesAfterDialogClearedPending() async {
+        let repo = MockTransactionsRepo()
+        let vm = TransactionsListViewModel(repo: repo, catalog: MockCatalog(), delete: DeleteTransactionUseCase(repo: repo))
+        let tx = Fixtures.tx(id: 7)
+        await vm.requestDelete(tx)
+        #expect(vm.pendingDelete?.id == 7)
+        vm.pendingDelete = nil   // SwiftUI dismisses the dialog before running its button
+        await vm.confirmDelete(tx)
+        #expect(repo.deleted == [7])
+        #expect(vm.errorMessage == nil)
+    }
+}
+
+@Suite("Siri text")
+@MainActor struct SiriTextTests {
+    private func proposal(description: String) -> ProposeTransactionUseCase.Proposal {
+        .init(draft: TransactionDraft(type: .expense, amount: 10, description: description, currencyCode: "BOB"),
+              account: Fixtures.accounts[1], category: Fixtures.categories[0],
+              isTransaction: true, missing: [], notes: [], heard: "")
+    }
+
+    @Test func saysWhatWasBoughtNotOnlyTheCategory() {
+        let done = String(localized: SiriTransactionText.done(proposal(description: "salteña")))
+        let label = CategoryNames.localized("Comida", code: "FOOD") ?? ""
+        #expect(done.contains("salteña") && done.contains(label) && done.contains("Efectivo"))
+        #expect(SiriTransactionText.title(proposal(description: "salteña")) == "salteña")
+    }
+
+    @Test func descriptionEqualToCategoryIsNotRepeated() {
+        let label = CategoryNames.localized("Comida", code: "FOOD") ?? ""
+        let p = proposal(description: label.lowercased())
+        #expect(!SiriTransactionText.summary(p).contains(" por "))
+        #expect(SiriTransactionText.title(p) == label)
+    }
+}

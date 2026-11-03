@@ -46,7 +46,10 @@ struct TransactionsView: View {
                                 .buttonStyle(.plain)
                                 .swipeActions(edge: .trailing) {
                                     if !tx.isSystemGenerated {
-                                        Button(role: .destructive) { Task { await vm.requestDelete(tx) } } label: { Label("Eliminar", systemImage: "trash") }
+                                        // No .destructive role: it makes List drop the row at once, and removing it
+                                        // again after confirming crashes UICollectionView (invalid item count).
+                                        Button { Task { await vm.requestDelete(tx) } } label: { Label("Eliminar", systemImage: "trash") }
+                                            .tint(.red)
                                     }
                                 }
                                 .contextMenu {
@@ -81,12 +84,19 @@ struct TransactionsView: View {
         .sheet(item: $editing) { tx in
             TransactionFormView(vm: makeForm(tx)) { Task { await vm.reload() } }
         }
-        .confirmationDialog("¿Eliminar transacción?", item: $vm.pendingDelete) { _ in
-            Button("Eliminar", role: .destructive) { Task { await vm.confirmDelete() } }
+        // Centered alert, not a row-anchored dialog: the row it points at is about to disappear.
+        .alert("¿Eliminar transacción?", isPresented: deletePresented, presenting: vm.pendingDelete) { tx in
+            Button("Cancelar", role: .cancel) {}
+            // `tx` comes from `presenting`: pendingDelete is already nil when this runs.
+            Button("Eliminar", role: .destructive) { Task { await vm.confirmDelete(tx) } }
         } message: { _ in
             Text(vm.deleteWarning ?? String(localized: "Esta acción no se puede deshacer."))
         }
         .errorAlert($vm.errorMessage)
+    }
+
+    private var deletePresented: Binding<Bool> {
+        Binding(get: { vm.pendingDelete != nil }, set: { if !$0 { vm.pendingDelete = nil } })
     }
 
     private var monthSelector: some View {

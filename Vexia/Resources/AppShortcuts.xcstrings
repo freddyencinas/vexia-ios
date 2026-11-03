@@ -1,0 +1,83 @@
+{
+  "sourceLanguage": "es",
+  "strings": {
+    "Abre ${target} en ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Open ${target} in ${applicationName}",
+              "Show ${target} in ${applicationName}"
+            ]
+          }
+        },
+        "es": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Abre ${target} en ${applicationName}",
+              "Muestra ${target} en ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Busca en ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Search in ${applicationName}",
+              "Search transactions in ${applicationName}"
+            ]
+          }
+        },
+        "es": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Busca en ${applicationName}",
+              "Buscar movimientos en ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Registra un gasto en ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Log an expense in ${applicationName}",
+              "Add an expense in ${applicationName}",
+              "Record an expense in ${applicationName}",
+              "Log income in ${applicationName}",
+              "Add income in ${applicationName}",
+              "New transaction in ${applicationName}"
+            ]
+          }
+        },
+        "es": {
+          "stringSet": {
+            "state": "new",
+            "values": [
+              "Registra un gasto en ${applicationName}",
+              "Registrar gasto en ${applicationName}",
+              "Anota un gasto en ${applicationName}",
+              "Registra un ingreso en ${applicationName}",
+              "Anota un ingreso en ${applicationName}",
+              "Nuevo movimiento en ${applicationName}"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
