@@ -13,6 +13,11 @@ protocol LLMProvider: Sendable {
     func infer(prompt: String, system: String, imageJPEG: Data) async throws -> String
 }
 
+/// On-device text recognition of a receipt photo. The text names the bank and currency even when the LLM omits them.
+protocol ReceiptTextReader: Sendable {
+    func text(in imageJPEG: Data) async throws -> String
+}
+
 /// Speech-to-text port. Streams partial transcripts; `stop()` returns the final text.
 protocol SpeechTranscriber: AnyObject {
     func requestAuthorization() async -> Bool

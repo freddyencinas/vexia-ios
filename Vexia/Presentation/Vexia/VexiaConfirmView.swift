@@ -9,6 +9,8 @@ struct VexiaConfirmView: View {
     @State private var showNoteEditor = false
     @State private var showDatePicker = false
     @State private var noteText = ""
+    @State private var showAmountEditor = false
+    @State private var amountText = ""
     @Environment(\.dismiss) private var dismiss
     @Environment(SavedBannerCenter.self) private var savedBanner: SavedBannerCenter?
 
@@ -16,12 +18,14 @@ struct VexiaConfirmView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "sparkles").font(.headline).foregroundStyle(.white)
-                            .frame(width: 44, height: 44).background(VexiaColor.brandFill, in: .circle)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Escuché").font(.subheadline).foregroundStyle(VexiaColor.textSecondary)
-                            Text("“\(vm.heard)”").font(.body.weight(.semibold))
+                    if vm.showsHeard {
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: "sparkles").font(.headline).foregroundStyle(.white)
+                                .frame(width: 44, height: 44).background(VexiaColor.brandFill, in: .circle)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Escuché").font(.subheadline).foregroundStyle(VexiaColor.textSecondary)
+                                Text("“\(vm.heard)”").font(.body.weight(.semibold))
+                            }
                         }
                     }
                     card
@@ -41,6 +45,11 @@ struct VexiaConfirmView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cerrar", systemImage: "xmark") { dismiss() } } }
             .task { await vm.load() }
+            .alert("Monto", isPresented: $showAmountEditor) {
+                TextField("0", text: $amountText).keyboardType(.decimalPad)
+                Button("Cancelar", role: .cancel) {}
+                Button("Guardar") { vm.setAmount(amountText) }
+            }
             .alert("Nota", isPresented: $showNoteEditor) {
                 TextField("Descripción", text: $noteText)
                 Button("Cancelar", role: .cancel) {}
@@ -63,7 +72,18 @@ struct VexiaConfirmView: View {
                 Spacer()
                 Text("Toca un dato para cambiarlo").font(.caption).foregroundStyle(VexiaColor.textSecondary)
             }
-            Text(vm.amountText).font(.system(size: 40, weight: .bold, design: .rounded)).monospacedDigit()
+            Button {
+                amountText = vm.amountEditText
+                showAmountEditor = true
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(vm.amountText).font(.system(size: 40, weight: .bold, design: .rounded)).monospacedDigit()
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                    Image(systemName: "pencil").font(.title3).foregroundStyle(VexiaColor.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("Editar monto"))
             FlowChips {
                 Button { showCategoryPicker = true } label: {
                     chip("Categoría", vm.category.map { c in [CategorySymbol.emoji(c.icon), c.name].compactMap { $0 }.joined(separator: " ") } ?? String(localized: "Elegir"),
@@ -123,7 +143,9 @@ struct VexiaConfirmView: View {
             .disabled(!vm.missing.isEmpty || vm.isSaving)
             HStack(spacing: 8) {
                 Button { dismiss(); onEditAll(vm.draft) } label: { Text("Editar todo").frame(maxWidth: .infinity) }
-                Button { dismiss(); onRetry() } label: { Text("Volver a dictar").frame(maxWidth: .infinity) }
+                Button { dismiss(); onRetry() } label: {
+                    Text(vm.fromReceipt ? String(localized: "Escanear otro") : String(localized: "Volver a dictar")).frame(maxWidth: .infinity)
+                }
             }
             .buttonStyle(.glass).controlSize(.large)
         }

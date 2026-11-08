@@ -40,11 +40,11 @@ final class AppContainer {
         biometrics = DeviceBiometricAuthenticator()
         google = GoogleOAuthProvider(clientID: AppConfig.googleIOSClientID)
         prompts = RemotePromptRepository()
-        // AI provider chain: cloud (vision-capable) → Apple on-device fallback for text.
-        llm = FallbackLLMProvider([
-            CloudflareLLMProvider(apiKey: { settings.llmAPIKey }),
-            AppleFoundationModelsProvider(),
-        ])
+        // Apple on-device first (private, free, offline), cloud for devices without Apple Intelligence
+        // or when the local answer is no use: unparseable text, or a receipt read without amount.
+        llm = FallbackLLMProvider([AppleFoundationModelsProvider(), CloudflareLLMProvider(apiKey: { settings.llmAPIKey })],
+                                  textAnswerIsUsable: { (try? VexiaResultParser.parse($0)) != nil },
+                                  imageAnswerIsUsable: { ((try? VexiaResultParser.parse($0))?.form.amount ?? 0) > 0 })
         makeTranscriber = { AppleSpeechTranscriber() }
         usage = UsageStatsUseCase(repo: transactions, store: UserDefaultsUsageStatsStore())
         api.languageCode = settings.language
@@ -58,7 +58,7 @@ final class AppContainer {
     var saveTransaction: SaveTransactionUseCase { .init(repo: transactions, usage: usage) }
     var deleteTransaction: DeleteTransactionUseCase { .init(repo: transactions) }
     var loadDashboard: LoadDashboardUseCase { .init(repo: dashboard) }
-    var classifyTransaction: ClassifyTransactionUseCase { .init(llm: llm, prompts: prompts) }
+    var classifyTransaction: ClassifyTransactionUseCase { .init(llm: llm, prompts: prompts, receiptReader: VisionReceiptTextReader()) }
     var consultSpending: ConsultSpendingUseCase { .init(dashboard: dashboard, catalog: catalog) }
     var proposeTransaction: ProposeTransactionUseCase {
         .init(classify: classifyTransaction, catalog: catalog, usage: usage.cached, language: settings.language)

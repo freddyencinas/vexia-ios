@@ -9,6 +9,7 @@ struct ClassifyTransactionUseCase {
 
     let llm: LLMProvider
     let prompts: PromptRepository
+    var receiptReader: ReceiptTextReader? = nil
 
     func callAsFunction(text: String? = nil, imageJPEG: Data? = nil, language: String,
                         categories: [FinancialCategory], accounts: [Account]) async throws -> VexiaResult {
@@ -21,13 +22,31 @@ struct ClassifyTransactionUseCase {
             incomeCategories: Self.lines(categories.filter { $0.type == "income" }),
             accounts: accounts.map { "- \($0.name)" }.joined(separator: "\n")
         )
-        let raw: String
-        if let imageJPEG {
-            raw = try await llm.infer(prompt: input.isEmpty ? Self.receiptPrompt : input, system: system, imageJPEG: imageJPEG)
-        } else {
-            raw = try await llm.infer(prompt: input, system: system)
+        guard let imageJPEG else {
+            let raw = try await llm.infer(prompt: input, system: system)
+            return Self.postProcess(try VexiaResultParser.parse(raw), accounts: accounts, categories: categories, transcript: input)
         }
-        return Self.postProcess(try VexiaResultParser.parse(raw), accounts: accounts, categories: categories, transcript: input)
+        // OCR text goes to the model (exact digits) and decides account/currency (models skip them).
+        let ocr = ((try? await receiptReader?.text(in: imageJPEG)) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let prompt = Self.receiptPrompt(input.isEmpty ? Self.receiptPrompt : input, ocr: ocr)
+        let raw = try await llm.infer(prompt: prompt, system: system, imageJPEG: imageJPEG)
+        var r = Self.postProcess(try VexiaResultParser.parse(raw), accounts: accounts, categories: categories, transcript: input)
+        if !ocr.isEmpty { r = Self.applyReceiptText(ocr, to: r, accounts: accounts) }
+        return r
+    }
+
+    nonisolated static func receiptPrompt(_ prompt: String, ocr: String) -> String {
+        ocr.isEmpty ? prompt : prompt + "\n\nTexto del comprobante (OCR):\n" + ocr
+    }
+
+    /// A bank printed on the receipt beats the model's guess; so does its currency ("Bs 400.00").
+    nonisolated static func applyReceiptText(_ ocr: String, to r: VexiaResult, accounts: [Account]) -> VexiaResult {
+        var r = r
+        if r.form.type != TransactionType.transfer.rawValue, let a = AccountMatcher.mentioned(in: ocr, accounts: accounts) {
+            r.form.accountFromId = a.id
+        }
+        if let c = AccountMatcher.spokenCurrency(in: ocr) { r.form.currency = c }
+        return r
     }
 
     nonisolated static func lines(_ cats: [FinancialCategory]) -> String {
@@ -47,6 +66,13 @@ struct ClassifyTransactionUseCase {
         r.form.accountFromId = resolveAccount(r.form.accountFromId)
         r.form.accountToId = resolveAccount(r.form.accountToId)
         if let transcript, !transcript.isEmpty {
+            // Small models copy prompt examples ("Banco BCP", "salteña"): keep only what was actually said.
+            if let id = r.form.accountFromId, let a = accounts.first(where: { $0.id == id }), !Grounding.said(a.name, in: transcript) {
+                r.form.accountFromId = nil
+            }
+            if let d = r.form.description, !Grounding.said(d, in: transcript) {
+                r.form.description = r.form.merchantOrPayee.flatMap { Grounding.said($0, in: transcript) ? $0 : nil }
+            }
             if r.form.accountFromId == nil, r.form.type != TransactionType.transfer.rawValue {
                 r.form.accountFromId = AccountMatcher.mentioned(in: transcript, accounts: accounts)?.id
             }
@@ -97,6 +123,17 @@ struct ClassifyTransactionUseCase {
         d.currency = account?.currencyId ?? ""
         d.currencyCode = account?.code.uppercased() ?? ""
         return d
+    }
+}
+
+/// Whether a value returned by the LLM appears in what the user said (accents, case and plurals ignored).
+nonisolated enum Grounding {
+    static func said(_ value: String, in transcript: String) -> Bool {
+        let heard = AccountMatcher.tokens(transcript)
+        let words = AccountMatcher.tokens(value).filter { $0.count >= 3 }
+        guard !words.isEmpty else { return true }   // nothing identifying to check ("BCP" → "bcp" still counts)
+        let found = words.filter { w in heard.contains { $0 == w || ($0.count >= 4 && w.count >= 4 && ($0.hasPrefix(w) || w.hasPrefix($0))) } }
+        return found.count * 2 >= words.count
     }
 }
 

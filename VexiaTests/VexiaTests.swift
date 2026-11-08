@@ -80,11 +80,12 @@ struct UseCaseTests {
         #expect(llm.lastSystem?.contains("- SALARY: Salario") == true)
         #expect(llm.lastSystem?.contains("{{TEXT}}") == false)
         #expect(r.form.categoryId == "c-food")      // code → id
-        #expect(r.form.accountFromId == "acc2")     // name → id
+        #expect(r.form.accountFromId == nil)        // account the user didn't say is dropped
         #expect(r.form.accountToId == nil)          // unknown account dropped
 
         let d = ClassifyTransactionUseCase.draft(from: r, accounts: Fixtures.accounts)
         #expect(d.amount == 25)
+        #expect(d.accountId == "acc2")              // …and the favorite fills it
         #expect(d.currency == "cur-usd")
         #expect(d.description == "Pizza")
     }
@@ -131,6 +132,23 @@ struct UseCaseTests {
         _ = try await ClassifyTransactionUseCase(llm: llm, prompts: MockPrompts())(imageJPEG: Data([1, 2]), language: "es", categories: [], accounts: [])
         #expect(llm.usedImage)
         #expect(llm.lastPrompt == ClassifyTransactionUseCase.receiptPrompt)
+    }
+
+    @Test func receiptTextPicksBankAndCurrency() async throws {
+        struct OCR: ReceiptTextReader {
+            func text(in imageJPEG: Data) async throws -> String { "BANCO GANADERO\nBs 400.00\nENCINAS CUELLAR FREDDY ALBERTO\nSERVICIO" }
+        }
+        let accounts = [
+            Account(id: "w", name: "Admirals Wallet", type: .investment, currencyId: "cur-usd", currencyCode: "USD", initialBalance: 0, isFavorite: true),
+            Account(id: "g", name: "Banco Ganadero", type: .checking, currencyId: "cur-bob", currencyCode: "BOB", initialBalance: 0, isFavorite: false),
+        ]
+        let llm = MockLLM(response: #"{"intent":"expense","form":{"type":"expense","amount":400,"description":"SERVICIO"}}"#)
+        let r = try await ClassifyTransactionUseCase(llm: llm, prompts: MockPrompts(), receiptReader: OCR())(
+            imageJPEG: Data([1]), language: "es", categories: [], accounts: accounts)
+        #expect(llm.lastPrompt?.contains("BANCO GANADERO") == true)
+        let d = ClassifyTransactionUseCase.draft(from: r, accounts: accounts)
+        #expect(d.accountId == "g")
+        #expect(d.currencyCode == "BOB")
     }
 
     @Test func silenceAutoStopDoesNotCancelClassification() async throws {
@@ -203,6 +221,18 @@ struct UseCaseTests {
     @Test func fallbackProviderTriesNext() async throws {
         let p = FallbackLLMProvider([MockLLM(error: AIError.unavailable("down")), MockLLM(response: "ok")])
         #expect(try await p.infer(prompt: "a", system: "b") == "ok")
+    }
+
+    @Test func uselessAnswersFallThroughToNextProvider() async throws {
+        let device = MockLLM(response: "device"), cloud = MockLLM(response: "cloud")
+        let p = FallbackLLMProvider([device, cloud])
+        #expect(try await p.infer(prompt: "a", system: "b", imageJPEG: Data()) == "device")
+        #expect(try await p.infer(prompt: "a", system: "b") == "device")
+        #expect(!cloud.usedImage)
+
+        let picky = FallbackLLMProvider([device, cloud], textAnswerIsUsable: { $0 == "cloud" }, imageAnswerIsUsable: { $0 == "cloud" })
+        #expect(try await picky.infer(prompt: "a", system: "b") == "cloud")
+        #expect(try await picky.infer(prompt: "a", system: "b", imageJPEG: Data()) == "cloud")
     }
 
     struct InvalidDraft: Sendable, CustomTestStringConvertible {
@@ -824,9 +854,9 @@ struct AmountMathTests {
 
 @Suite("Siri")
 @MainActor struct SiriTests {
-    private func propose(_ json: String) async throws -> ProposeTransactionUseCase.Proposal {
+    private func propose(_ json: String, said: String = "50 de almuerzo en efectivo") async throws -> ProposeTransactionUseCase.Proposal {
         let classify = ClassifyTransactionUseCase(llm: MockLLM(response: json), prompts: MockPrompts())
-        return try await ProposeTransactionUseCase(classify: classify, catalog: MockCatalog(), language: "es")("50 de almuerzo en efectivo")
+        return try await ProposeTransactionUseCase(classify: classify, catalog: MockCatalog(), language: "es")(said)
     }
 
     @Test func completeExpenseIsReadyToConfirm() async throws {
@@ -844,7 +874,8 @@ struct AmountMathTests {
     }
 
     @Test func transferNeedsAnotherAccount() async throws {
-        let ok = try await propose(#"{"intent":"transfer","form_prefill":{"type":"transfer","amount":{"value":100},"account_from_id":"Banco Unión","account_to_id":"Efectivo"}}"#)
+        let ok = try await propose(#"{"intent":"transfer","form_prefill":{"type":"transfer","amount":{"value":100},"account_from_id":"Banco Unión","account_to_id":"Efectivo"}}"#,
+                               said: "100 del banco unión a efectivo")
         #expect(ok.missing.isEmpty)
         let same = try await propose(#"{"intent":"transfer","form_prefill":{"type":"transfer","amount":{"value":100},"account_from_id":"Efectivo","account_to_id":"Efectivo"}}"#)
         #expect(same.missing == [.destination])
@@ -1012,5 +1043,89 @@ struct SpokenSearchTests {
     @Test func typeNarrowsCategories() {
         #expect(parse("ingresos salario").categoryId == "sal")
         #expect(parse("gastos salario").categoryId == nil)
+    }
+}
+
+@Suite("Vexia confirm")
+struct VexiaConfirmTests {
+    private func vm(heard: String = "50 de almuerzo", receipt: Bool = false, amount: Double = 400) -> VexiaConfirmViewModel {
+        var d = TransactionDraft(); d.amount = amount
+        return VexiaConfirmViewModel(draft: d, notes: [], heard: heard, fromReceipt: receipt,
+                                     save: SaveTransactionUseCase(repo: MockTransactionsRepo()), catalog: MockCatalog())
+    }
+
+    @Test func heardHiddenForReceiptsAndEmptyText() {
+        #expect(vm().showsHeard)
+        #expect(!vm(receipt: true).showsHeard)
+        #expect(!vm(heard: " ").showsHeard)
+    }
+
+    @Test func amountEditAcceptsBothSeparatorsAndIgnoresInvalid() {
+        let v = vm()
+        v.setAmount("1.234,50"); #expect(v.draft.amount == 1234.5)
+        v.setAmount("45.9"); #expect(v.draft.amount == 45.9)
+        v.setAmount("abc"); #expect(v.draft.amount == 45.9)
+        v.setAmount("0"); #expect(v.draft.amount == 45.9)
+        #expect(vm(amount: 0).amountEditText.isEmpty)
+    }
+
+    @Test func sameCurrencyTransferFollowsAmount() {
+        let v = vm(); v.draft.type = .transfer; v.draft.toAmount = 400
+        v.setAmount("350"); #expect(v.draft.toAmount == 350)
+        v.draft.toAmount = 50; v.setAmount("300"); #expect(v.draft.toAmount == 50)   // exchange keeps its own target
+    }
+}
+
+@Suite("Vexia grounding")
+struct GroundingTests {
+    private let accounts = [
+        Account(id: "bcp", name: "Banco BCP", type: .checking, currencyId: "cur-bob", currencyCode: "BOB", initialBalance: 0, isFavorite: false),
+        Account(id: "cash", name: "Efectivo", type: .cash, currencyId: "cur-bob", currencyCode: "BOB", initialBalance: 0, isFavorite: false),
+    ]
+
+    private func result(description: String?, merchant: String?, account: String?) -> VexiaResult {
+        var r = try! VexiaResultParser.parse(#"{"intent":"expense","form_prefill":{"type":"expense","amount":{"value":160.8,"currency":"BOB"}}}"#)
+        r.form.description = description; r.form.merchantOrPayee = merchant; r.form.accountFromId = account
+        return r
+    }
+
+    @Test func inventedDescriptionFallsBackToSaidMerchant() {
+        let said = "Gasté 160,80 Bs. en la casa del Camba en banco BCP"
+        let r = ClassifyTransactionUseCase.postProcess(result(description: "salteña", merchant: "Casa del Camba", account: "Banco BCP"),
+                                                       accounts: accounts, categories: [], transcript: said)
+        #expect(r.form.description == "Casa del Camba")
+        #expect(r.form.accountFromId == "bcp")
+    }
+
+    @Test func inventedAccountIsDropped() {
+        let r = ClassifyTransactionUseCase.postProcess(result(description: "salteñas", merchant: nil, account: "Efectivo"),
+                                                       accounts: accounts, categories: [], transcript: "compré salteñas 30 bs")
+        #expect(r.form.accountFromId == nil)
+        #expect(r.form.description == "salteñas")
+    }
+
+    @Test func pluralsAndAccentsCount() {
+        #expect(Grounding.said("pollo", in: "compré pollos 19 bs"))
+        #expect(Grounding.said("Rincón del Sabor", in: "en el rincon del sabor"))
+        #expect(!Grounding.said("Rincón del Sabor", in: "en la casa del camba"))
+    }
+}
+
+@Suite("Prompt versions")
+struct PromptVersionTests {
+    private func t(_ v: String) -> PromptTemplate { PromptTemplate(id: "x", version: v, language: "es", fullPrompt: v) }
+
+    @Test func bundledWinsOnlyWhenServerIsOlder() {
+        #expect(RemotePromptRepository.newest(t("1.2.0"), t("1.3.0")).version == "1.3.0")
+        #expect(RemotePromptRepository.newest(t("1.4.0"), t("1.3.0")).version == "1.4.0")
+        #expect(RemotePromptRepository.newest(t("1.3"), t("1.3.0")).version == "1.3")
+        #expect(RemotePromptRepository.newest(t("cache"), t("1.3.0")).version == "1.3.0")
+        #expect(RemotePromptRepository.newest(t("1.2.0"), nil).version == "1.2.0")
+    }
+
+    @Test func bundledPromptIsTheCurrentVersion() throws {
+        let p = try RemotePromptRepository.embedded(id: ClassifyTransactionUseCase.promptId, language: "es")
+        #expect(p.version == RemotePromptRepository.embeddedVersion)
+        #expect(p.fullPrompt.contains("REGLA DE COMERCIOS"))
     }
 }

@@ -27,6 +27,7 @@ final class SettingsViewModel {
     var biometryName: String { biometrics.biometryName }
     var biometricsAvailable: Bool { biometrics.isAvailable }
     var onDeviceAIAvailable: Bool { AppleFoundationModelsProvider.isAvailable }
+    var receiptsOnDevice: Bool { AppleFoundationModelsProvider.readsReceipts }
 
     func toggleBiometrics(_ on: Bool) async {
         // Confirm identity before enabling.

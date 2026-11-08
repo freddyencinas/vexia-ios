@@ -30,7 +30,10 @@ struct MainTabView: View {
     enum AppTab: Hashable { case dashboard, transactions, investments, budgets, add }
 
     struct FormRequest: Identifiable { let id = UUID(); var draft: TransactionDraft?; var notes: [String] = [] }
-    struct ConfirmRequest: Identifiable { let id = UUID(); var draft: TransactionDraft; var notes: [String]; var heard: String }
+    struct ConfirmRequest: Identifiable {
+        let id = UUID(); var draft: TransactionDraft; var notes: [String]; var heard: String
+        var source: VexiaCaptureView.Mode = .voice
+    }
 
     init(container: AppContainer, session: SessionViewModel) {
         self.container = container
@@ -108,16 +111,17 @@ struct MainTabView: View {
                              mode: mode) { draft, notes, heard in
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(400))
-                    confirm = ConfirmRequest(draft: draft, notes: notes, heard: heard)
+                    confirm = ConfirmRequest(draft: draft, notes: notes, heard: heard, source: mode)
                 }
             }
         }
         .sheet(item: $confirm) { req in
             VexiaConfirmView(vm: VexiaConfirmViewModel(draft: req.draft, notes: req.notes, heard: req.heard,
+                                                      fromReceipt: req.source == .receipt,
                                                       save: container.saveTransaction, catalog: container.catalog),
                              onSaved: { SiriDonations.transactionRegistered(); refreshAfterSave() },
                              onEditAll: { draft in later { newTransaction = FormRequest(draft: draft, notes: req.notes) } },
-                             onRetry: { later { capture = .voice } })
+                             onRetry: { later { capture = req.source } })
         }
         .sheet(isPresented: $showAssistant) {
             NavigationStack {

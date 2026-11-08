@@ -1,4 +1,7 @@
 import Foundation
+import ImageIO
+import OSLog
+import Vision
 #if canImport(FoundationModels)
 import FoundationModels
 #endif
@@ -54,7 +57,7 @@ final class CloudflareLLMProvider: LLMProvider {
     }
 }
 
-/// Apple Intelligence on-device adapter (Foundation Models framework). Text-only.
+/// Apple Intelligence on-device adapter (Foundation Models framework): text, and receipts when the model can see.
 /// Demonstrates that the Domain layer is SDK-agnostic: swapping providers needs zero changes in use cases.
 final class AppleFoundationModelsProvider: LLMProvider {
     let id = "apple-foundation-models"
@@ -66,11 +69,42 @@ final class AppleFoundationModelsProvider: LLMProvider {
         return false
     }
 
+    /// Model available and able to read images (iOS 27 vision capability).
+    static var readsReceipts: Bool {
+        #if canImport(FoundationModels)
+        return isAvailable && SystemLanguageModel.default.capabilities.contains(.vision)
+        #else
+        return false
+        #endif
+    }
+
     func infer(prompt: String, system: String) async throws -> String {
         #if canImport(FoundationModels)
         guard Self.isAvailable else { throw AIError.unavailable(String(localized: "Apple Intelligence no está disponible en este dispositivo")) }
-        let session = LanguageModelSession(instructions: system)
-        do { return try await session.respond(to: prompt).content }
+        return try await respond(system: system) { try await $0.respond(to: prompt).content }
+        #else
+        throw AIError.unavailable(String(localized: "Foundation Models no disponible"))
+        #endif
+    }
+
+    /// The prompt already carries the receipt's OCR text (ClassifyTransactionUseCase).
+    func infer(prompt: String, system: String, imageJPEG: Data) async throws -> String {
+        #if canImport(FoundationModels)
+        guard Self.readsReceipts else { throw AIError.unavailable(String(localized: "el modelo on-device no procesa imágenes")) }
+        guard let source = CGImageSourceCreateWithData(imageJPEG as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        else { throw AIError.invalidResponse(String(localized: "imagen ilegible")) }
+        return try await respond(system: system) { session in
+            try await session.respond { prompt; Attachment(image) }.content
+        }
+        #else
+        throw AIError.unavailable(String(localized: "el modelo on-device no procesa imágenes"))
+        #endif
+    }
+
+    #if canImport(FoundationModels)
+    private func respond(system: String, _ op: (LanguageModelSession) async throws -> String) async throws -> String {
+        do { return try await op(LanguageModelSession(instructions: system)) }
         catch {
             #if DEBUG
             print("[AI] apple-foundation-models failed: \(error)")
@@ -78,35 +112,58 @@ final class AppleFoundationModelsProvider: LLMProvider {
             // Framework errors surface as the generic "operation couldn't be completed" text.
             throw AIError.unavailable(String(localized: "el modelo de Apple en el dispositivo no pudo procesar la solicitud"))
         }
-        #else
-        throw AIError.unavailable(String(localized: "Foundation Models no disponible"))
-        #endif
     }
+    #endif
+}
 
-    func infer(prompt: String, system: String, imageJPEG: Data) async throws -> String {
-        throw AIError.unavailable(String(localized: "el modelo on-device no procesa imágenes"))
+/// On-device text recognition (Vision): works on every iOS 27 device, with or without Apple Intelligence.
+final class VisionReceiptTextReader: ReceiptTextReader {
+    func text(in imageJPEG: Data) async throws -> String {
+        guard let source = CGImageSourceCreateWithData(imageJPEG as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return "" }
+        var request = RecognizeTextRequest()
+        request.recognitionLanguages = [Locale.Language(identifier: "es-ES"), Locale.Language(identifier: "en-US")]
+        return try await request.perform(on: image)
+            .compactMap { $0.topCandidates(1).first?.string }
+            .joined(separator: "\n")
     }
 }
 
-/// Composite: tries providers in order (e.g. cloud → on-device). Pure composition over the port.
+/// Which provider answered and which failed (Console: subsystem com.vexia.finance.ios, category ai). Never content.
+private let aiLog = Logger(subsystem: "com.vexia.finance.ios", category: "ai")
+
+/// Composite: tries providers in order (on-device → cloud). Pure composition over the port.
+/// An answer that is no use (unparseable, receipt without amount) counts as a failure, so the next provider tries.
 final class FallbackLLMProvider: LLMProvider {
     let providers: [LLMProvider]
+    private let textAnswerIsUsable: @Sendable (String) -> Bool
+    private let imageAnswerIsUsable: @Sendable (String) -> Bool
     var id: String { providers.map(\.id).joined(separator: "→") }
-    init(_ providers: [LLMProvider]) { self.providers = providers }
+
+    init(_ providers: [LLMProvider],
+         textAnswerIsUsable: @escaping @Sendable (String) -> Bool = { _ in true },
+         imageAnswerIsUsable: @escaping @Sendable (String) -> Bool = { _ in true }) {
+        self.providers = providers
+        self.textAnswerIsUsable = textAnswerIsUsable
+        self.imageAnswerIsUsable = imageAnswerIsUsable
+    }
 
     func infer(prompt: String, system: String) async throws -> String {
-        try await first { try await $0.infer(prompt: prompt, system: system) }
+        try await first(accept: textAnswerIsUsable, kind: "text") { try await $0.infer(prompt: prompt, system: system) }
     }
     func infer(prompt: String, system: String, imageJPEG: Data) async throws -> String {
-        try await first { try await $0.infer(prompt: prompt, system: system, imageJPEG: imageJPEG) }
+        try await first(accept: imageAnswerIsUsable, kind: "receipt") { try await $0.infer(prompt: prompt, system: system, imageJPEG: imageJPEG) }
     }
-    private func first(_ op: (LLMProvider) async throws -> String) async throws -> String {
+    private func first(accept: (String) -> Bool, kind: String, _ op: (LLMProvider) async throws -> String) async throws -> String {
         var errors: [Error] = []
         for p in providers {
-            do { return try await op(p) } catch {
-                #if DEBUG
-                print("[AI] \(p.id) failed: \(error)")
-                #endif
+            do {
+                let answer = try await op(p)
+                guard accept(answer) else { throw AIError.invalidResponse(String(localized: "respuesta incompleta")) }
+                aiLog.notice("\(kind, privacy: .public) answered by \(p.id, privacy: .public)")
+                return answer
+            } catch {
+                aiLog.notice("\(kind, privacy: .public) failed on \(p.id, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 errors.append(error)
             }
         }

@@ -64,6 +64,14 @@ Keywords semánticas para ingresos:
 - GIFTS: regalo, donación, herencia
 - REFUNDS: reembolso, devolución
 
+REGLA DE COMERCIOS Y LUGARES:
+- Si el usuario nombra un local o comercio, merchant_or_payee = ese nombre tal como lo dijo
+- Palabras como "casa", "hogar" o "rincón" dentro del nombre de un local NO indican vivienda
+- HOUSING solo aplica a alquiler, renta, hipoteca, reparación o muebles del hogar del usuario
+- Si no dice qué compró, clasifica por el tipo de local (restaurante, pensión, comedor, local de comida → FOOD)
+- Si no menciona producto, description = nombre del local tal como lo dijo
+- NUNCA inventes un producto, comercio o cuenta que el usuario no dijo
+
 REGLA DE CUENTAS:
 - Usa SOLO las cuentas listadas en CUENTAS DISPONIBLES
 - El match no es sensible a mayúsculas/minúsculas
@@ -119,6 +127,12 @@ Salida: {"language":"es","intent":"expense","confidence":1.0,"form_prefill":{"ty
 
 Entrada: gasté 50 bs en zapatos
 Salida: {"language":"es","intent":"expense","confidence":1.0,"form_prefill":{"type":"expense","amount":{"value":50,"currency":"BOB","raw":"50 bs"},"description":"zapatos","category_id":"SHOPPING","account_from_id":null,"merchant_or_payee":""}}
+
+Entrada: gasté 80 bs en la casa de don pepe con efectivo
+Salida: {"language":"es","intent":"expense","confidence":1.0,"form_prefill":{"type":"expense","amount":{"value":80,"currency":"BOB","raw":"80 bs"},"description":"Casa de Don Pepe","category_id":"FOOD","account_from_id":"Efectivo","merchant_or_payee":"Casa de Don Pepe"}}
+
+Entrada: pagué 2000 bs de alquiler de la casa con bcp
+Salida: {"language":"es","intent":"expense","confidence":1.0,"form_prefill":{"type":"expense","amount":{"value":2000,"currency":"BOB","raw":"2000 bs"},"description":"alquiler","category_id":"HOUSING","account_from_id":"Banco BCP","merchant_or_payee":""}}
 
 Entrada: me pagaron 500 dolares de sueldo
 Salida: {"language":"es","intent":"income","confidence":1.0,"form_prefill":{"type":"income","amount":{"value":500,"currency":"USD","raw":"500 dolares"},"description":"sueldo","category_id":"SALARY","account_from_id":null,"merchant_or_payee":""}}

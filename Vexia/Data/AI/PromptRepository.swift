@@ -8,17 +8,43 @@ final class RemotePromptRepository: PromptRepository {
 
     init(session: URLSession = .shared, defaults: UserDefaults = .standard) { self.session = session; self.defaults = defaults }
 
+    /// Version of the prompts bundled in Resources/Prompts. A server copy older than this loses to it,
+    /// so a prompt fix ships with the app without waiting for a backend publish (or the 24 h cache).
+    static let embeddedVersion = "1.3.0"
+
     func prompt(id: String, language: String) async throws -> PromptTemplate {
         let key = "vexia_prompt_\(id)_\(language)"
-        if let cached = cached(key), Date.now.timeIntervalSince1970 - defaults.double(forKey: key + "_at") < ttl { return cached }
+        let bundled = try? Self.embedded(id: id, language: language)
+        if let cached = cached(key), Date.now.timeIntervalSince1970 - defaults.double(forKey: key + "_at") < ttl {
+            return Self.newest(cached, bundled)
+        }
         if let remote = try? await fetch(id: id, language: language) {
             defaults.set(remote.fullPrompt, forKey: key)
             defaults.set(remote.version, forKey: key + "_v")
             defaults.set(Date.now.timeIntervalSince1970, forKey: key + "_at")
-            return remote
+            return Self.newest(remote, bundled)
         }
-        if let cached = cached(key) { return cached }
-        return try Self.embedded(id: id, language: language)
+        if let cached = cached(key) { return Self.newest(cached, bundled) }
+        guard let bundled else { throw AIError.notConfigured("prompt embebido") }
+        return bundled
+    }
+
+    nonisolated static func newest(_ server: PromptTemplate, _ bundled: PromptTemplate?) -> PromptTemplate {
+        guard let bundled, isOlder(server.version, than: bundled.version) else { return server }
+        return bundled
+    }
+
+    /// "1.2.0" < "1.3.0"; an unreadable version ("cache") counts as older.
+    nonisolated static func isOlder(_ a: String, than b: String) -> Bool {
+        func parts(_ v: String) -> [Int]? {
+            let p = v.split(separator: ".").map { Int($0) }
+            return p.isEmpty || p.contains(nil) ? nil : p.compactMap { $0 }
+        }
+        guard let x = parts(a), let y = parts(b) else { return parts(a) == nil }
+        for i in 0..<max(x.count, y.count) where (i < x.count ? x[i] : 0) != (i < y.count ? y[i] : 0) {
+            return (i < x.count ? x[i] : 0) < (i < y.count ? y[i] : 0)
+        }
+        return false
     }
 
     private func cached(_ key: String) -> PromptTemplate? {
@@ -39,6 +65,6 @@ final class RemotePromptRepository: PromptRepository {
         let lang = language == "en" ? "en" : "es"
         guard let url = Bundle.main.url(forResource: "\(id)_\(lang)", withExtension: "txt"),
               let text = try? String(contentsOf: url, encoding: .utf8) else { throw AIError.notConfigured("prompt embebido") }
-        return PromptTemplate(id: id, version: "embedded-1.2.0", language: lang, fullPrompt: text)
+        return PromptTemplate(id: id, version: embeddedVersion, language: lang, fullPrompt: text)
     }
 }

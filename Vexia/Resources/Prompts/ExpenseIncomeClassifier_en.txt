@@ -64,6 +64,14 @@ Semantic keywords for income:
 - GIFTS: gift, donation, inheritance
 - REFUNDS: refund, return
 
+MERCHANT AND PLACE RULE:
+- If the user names a shop or venue, merchant_or_payee = that name as said
+- Words like "house", "home" or "corner" inside a venue name do NOT mean housing
+- HOUSING only applies to rent, mortgage, repairs or furniture for the user's home
+- If they don't say what they bought, classify by the kind of venue (restaurant, diner, food place → FOOD)
+- If no product is mentioned, description = the venue name as said
+- NEVER invent a product, merchant or account the user didn't say
+
 ACCOUNT RULE:
 - Use ONLY accounts listed in AVAILABLE ACCOUNTS
 - Match is case-insensitive
@@ -131,6 +139,12 @@ Input: sold ethereum 150 dollars
 Output: {"language":"en","intent":"income","confidence":1.0,"form_prefill":{"type":"income","amount":{"value":150,"currency":"USD","raw":"150 dollars"},"description":"sold ethereum","category_id":"CRYPTO_SALE","account_from_id":null,"merchant_or_payee":""}}
 
 Output: {"language":"en","intent":"expense","confidence":1.0,"form_prefill":{"type":"expense","amount":{"value":50,"currency":"USD","raw":"50 dollars"},"description":"shoes","category_id":"SHOPPING","account_from_id":null,"merchant_or_payee":""}}
+
+Input: spent 30 dollars at the pancake house with cash
+Output: {"language":"en","intent":"expense","confidence":1.0,"form_prefill":{"type":"expense","amount":{"value":30,"currency":"USD","raw":"30 dollars"},"description":"Pancake House","category_id":"FOOD","account_from_id":"Cash","merchant_or_payee":"Pancake House"}}
+
+Input: paid 1200 dollars house rent with chase bank
+Output: {"language":"en","intent":"expense","confidence":1.0,"form_prefill":{"type":"expense","amount":{"value":1200,"currency":"USD","raw":"1200 dollars"},"description":"rent","category_id":"HOUSING","account_from_id":"Chase Bank","merchant_or_payee":""}}
 
 Input: received 500 dollars salary payment
 Output: {"language":"en","intent":"income","confidence":1.0,"form_prefill":{"type":"income","amount":{"value":500,"currency":"USD","raw":"500 dollars"},"description":"salary","category_id":"SALARY","account_from_id":null,"merchant_or_payee":""}}

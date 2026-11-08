@@ -21,6 +21,86 @@
         }
       }
     },
+    "Editar monto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit amount"
+          }
+        }
+      }
+    },
+    "En el dispositivo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On device"
+          }
+        }
+      }
+    },
+    "En la nube": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the cloud"
+          }
+        }
+      }
+    },
+    "Escanear otro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan another"
+          }
+        }
+      }
+    },
+    "imagen ilegible": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unreadable image"
+          }
+        }
+      }
+    },
+    "Recibos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipts"
+          }
+        }
+      }
+    },
+    "respuesta incompleta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "incomplete answer"
+          }
+        }
+      }
+    },
+    "Voz, texto y recibos usan Apple Intelligence en el dispositivo y, si no puede, el LLM en la nube.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice, text and receipts use Apple Intelligence on device, falling back to the cloud LLM."
+          }
+        }
+      }
+    },
     "—": {
       "shouldTranslate": false
     },
@@ -5388,16 +5468,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vexia AI"
-          }
-        }
-      }
-    },
-    "Vexia usa el LLM en la nube (texto + recibos) y, si falla, Apple Intelligence en el dispositivo para texto.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vexia uses the cloud LLM (text + receipts) and, if it fails, on-device Apple Intelligence for text."
           }
         }
       }

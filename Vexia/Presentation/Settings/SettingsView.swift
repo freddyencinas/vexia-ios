@@ -48,9 +48,10 @@ struct SettingsView: View {
 
                 Section {
                     LabeledContent("Apple Intelligence", value: vm.onDeviceAIAvailable ? String(localized: "Disponible") : String(localized: "No disponible"))
+                    LabeledContent("Recibos", value: vm.receiptsOnDevice ? String(localized: "En el dispositivo") : String(localized: "En la nube"))
                     SecureField("API key LLM en la nube", text: $vm.llmKey)
                 } header: { Text("Inteligencia artificial") } footer: {
-                    Text("Vexia usa el LLM en la nube (texto + recibos) y, si falla, Apple Intelligence en el dispositivo para texto.")
+                    Text("Voz, texto y recibos usan Apple Intelligence en el dispositivo y, si no puede, el LLM en la nube.")
                 }
                 Section("Servidor") {
                     TextField("API base URL", text: $vm.apiBase).textInputAutocapitalization(.never).keyboardType(.URL)
